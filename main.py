@@ -12,7 +12,6 @@ wp_user = "4731017_wpresse934f6d9"
 wp_url = "http://scenariy.pp.ua/index.php?rest_route=/wp/v2/posts"
 
 def clean_content(text):
-    # Видаляємо сміття типу ```html або зайві маркувальні знаки
     text = re.sub(r'```html', '', text)
     text = re.sub(r'```', '', text)
     return text.strip()
@@ -20,38 +19,38 @@ def clean_content(text):
 def generate_and_post():
     print(f"Генеруємо сценарій для: {topic}...")
     
-    # ПЕРЕВІР ЦЕЙ РЯДОК: тут не має бути квадратних дужок навколо https
-    gen_url = f"[https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=](https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=){gemini_key}"
+    # Очищуємо URL від можливих лінків/дужок, які додає редактор
+    raw_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}"
+    gen_url = raw_url.replace('[', '').replace(']', '').replace('(', '').replace(')', '').strip()
     
     prompt = f"""
-    Ти - професійний сценарист та SEO-спеціаліст.
-    Напиши детальний сценарій заходу на тему: {topic}. 
+    Ти - професійний сценарист. Напиши детальний сценарій заходу на тему: {topic}. 
     Аудиторія: {audience}. Мова: Українська. 
-    Оформи як HTML (використовуй h2, p, ul, li).
+    Оформи як HTML (h2, p, ul, li).
     
     В самому кінці відповіді додай рядок: 
-    SLUG: [тут напиши коротке англійське посилання для цієї теми, наприклад den-kozatstva]
+    SLUG: [тут напиши англійське посилання для цієї теми латиницею]
     """
     
     payload = {"contents": [{"parts": [{"text": prompt}]}]}
     
-    # Виконуємо запит
-    response = requests.post(gen_url, json=payload)
-    res_data = response.json()
-    
-    if response.status_code != 200:
-        print(f"❌ Помилка Gemini: {res_data}")
+    try:
+        response = requests.post(gen_url, json=payload)
+        response.raise_for_status()
+        res_data = response.json()
+    except Exception as e:
+        print(f"❌ Помилка запиту до Gemini: {e}")
         return
 
     raw_text = res_data['candidates'][0]['content']['parts'][0]['text']
     
-    # Шукаємо SLUG в тексті
+    # Шукаємо SLUG
     slug = "scenario"
     if "SLUG:" in raw_text:
         parts = raw_text.split("SLUG:")
         main_text = parts[0]
-        slug = parts[1].strip().replace("[", "").replace("]", "").lower()
-        slug = re.sub(r'[^a-z0-9\-]', '', slug) # Залишаємо тільки латиницю і дефіси
+        slug_raw = parts[1].strip().split('\n')[0]
+        slug = re.sub(r'[^a-z0-9\-]', '', slug_raw.lower())
     else:
         main_text = raw_text
 
@@ -60,20 +59,19 @@ def generate_and_post():
     # Публікація в WordPress
     auth = (wp_user, wp_password)
     post_data = {
-        "title": topic, # Назва заходу
+        "title": topic,
         "content": full_content,
-        "slug": slug,   # SEO посилання англійською
+        "slug": slug,
         "status": "publish"
     }
 
-    print(f"Надсилаємо в WordPress... Посилання буде: [http://scenariy.pp.ua/](http://scenariy.pp.ua/){slug}/")
+    print(f"Надсилаємо в WordPress... Slug: {slug}")
     wp_res = requests.post(wp_url, auth=auth, json=post_data)
 
     if wp_res.status_code == 201:
-        print(f"✅ Успіх! Сценарій опубліковано.")
+        print(f"✅ Успіх! http://scenariy.pp.ua/{slug}/")
     else:
-        print(f"❌ Помилка WP: {wp_res.status_code}")
-        print(wp_res.text)
+        print(f"❌ Помилка WP: {wp_res.status_code} - {wp_res.text}")
 
 if __name__ == "__main__":
     generate_and_post()
