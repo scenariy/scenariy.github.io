@@ -53,30 +53,30 @@ def generate_and_post():
     # НОВИЙ ТЕМНИЙ ДИЗАЙН (Fixed UI)
     # Ми використовуємо вбудовані стилі, які ігнорують налаштування браузера
     html_template = f"""
-    <div style="background-color: #121212 !important; color: #e0e0e0 !important; font-family: 'Inter', sans-serif; padding: 40px; border-radius: 16px; border: 1px solid #333; max-width: 800px; margin: 20px auto; box-shadow: 0 20px 40px rgba(0,0,0,0.4);">
+    <div style="background-color: #1a1a1a !important; color: #eeeeee !important; font-family: 'Inter', -apple-system, sans-serif; padding: 35px; border-radius: 12px; max-width: 800px; margin: 0 auto; line-height: 1.6;">
         
-        <div style="text-align: center; margin-bottom: 35px;">
-            <div style="display: inline-block; background: #FFD700; color: #000; padding: 5px 15px; border-radius: 6px; font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 15px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <div style="display: inline-block; background-color: #f1c40f !important; color: #000000 !important; padding: 4px 14px; border-radius: 4px; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">
                 {data['category_name']}
             </div>
-            <p style="color: #888; font-size: 14px; margin: 0;">Цільова аудиторія: {audience}</p>
+            <p style="color: #666; font-size: 13px; margin-top: 10px;">Для аудиторії: {audience}</p>
         </div>
 
-        <div style="background: #1e1e1e; padding: 20px; border-left: 4px solid #FFD700; border-radius: 4px; margin-bottom: 30px;">
-            <p style="margin: 0; line-height: 1.6; color: #bbb;">{data['intro']}</p>
+        <div style="background: #252525; padding: 20px; border-radius: 8px; border-left: 4px solid #f1c40f; margin-bottom: 30px;">
+            <p style="margin: 0; color: #ddd; font-style: italic;">{data['intro']}</p>
         </div>
 
-        <div style="margin-bottom: 40px;">
-            <h3 style="color: #FFD700; font-size: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px;">🎭 Дійові особи</h3>
-            <ul style="color: #ccc; line-height: 1.8;">{data['roles']}</ul>
+        <div style="margin-bottom: 35px;">
+            <h3 style="color: #f1c40f; font-size: 19px; border-bottom: 1px solid #333; padding-bottom: 8px;">🎭 Дійові особи</h3>
+            <ul style="padding-left: 20px; color: #bbb;">{data['roles']}</ul>
         </div>
 
-        <div style="margin-bottom: 40px;">
-            <h3 style="color: #4da6ff; font-size: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px;">📜 Сценарій заходу</h3>
-            <div style="color: #ddd; line-height: 1.9;">{data['main_script']}</div>
+        <div style="margin-bottom: 35px;">
+            <h3 style="color: #3498db; font-size: 19px; border-bottom: 1px solid #333; padding-bottom: 8px;">📜 Сценарій заходу</h3>
+            <div style="color: #ccc;">{data['main_script']}</div>
         </div>
 
-        <div style="text-align: center; color: #666; font-style: italic; border-top: 1px solid #222; padding-top: 20px;">
+        <div style="text-align: center; border-top: 1px solid #333; padding-top: 20px; color: #555; font-size: 14px;">
             {data['conclusion']}
         </div>
     </div>
