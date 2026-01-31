@@ -1,66 +1,64 @@
 import os
 import requests
 import json
+import re
 
-# 1. Отримання даних з оточення GitHub Actions
+# Налаштування
 topic = os.getenv("TOPIC")
 audience = os.getenv("AUDIENCE")
 gemini_key = os.getenv("GEMINI_API_KEY")
 wp_password = os.getenv("WP_PASSWORD")
+wp_user = "4731017_wpresse934f6d9" 
+wp_url = "[http://scenariy.pp.ua/index.php?rest_route=/wp/v2/posts](http://scenariy.pp.ua/index.php?rest_route=/wp/v2/posts)"
 
-# Налаштування твого сайту
-wp_user = "scenariy" 
-wp_url = "http://scenariy.pp.ua/index.php?rest_route=/wp/v2/posts"
+def clean_html(text):
+    # Видаляємо маркер ```html та ```
+    text = re.sub(r'```html', '', text)
+    text = re.sub(r'```', '', text)
+    return text.strip()
 
 def generate_and_post():
-    print(f"Генеруємо сценарій за допомогою Gemini 2.0 Flash для теми: {topic}...")
+    # 1. Запит до Gemini для генерації контенту та SEO-даних
+    gen_url = f"[https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=](https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=){gemini_key}"
     
-    # ПРЯМИЙ URL ДО МОДЕЛІ 2.0 FLASH
-    gen_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
+    # Просимо ШІ повернути сценарій ТА технічні дані (slug)
+    prompt = f"""
+    Напиши детальний сценарій заходу на тему: {topic}. 
+    Аудиторія: {audience}. Мова: Українська. 
+    Оформи як HTML (h2, p, ul, li).
     
-    prompt = f"Напиши детальний сценарій заходу на тему: {topic}. Аудиторія: {audience}. Мова: Українська. Оформи як HTML (використовуй <h2>, <p>, <ul>, <li>)."
+    Також придумай коротке SEO-посилання (slug) для цієї теми англійською мовою (наприклад: den-kozatstva).
+    Відповідь почни з тегу [SLUG:твоє_посилання], а потім іди сам текст сценарію.
+    """
     
-    payload = {
-        "contents": [{
-            "parts": [{"text": prompt}]
-        }]
-    }
+    payload = {"contents": [{"parts": [{"text": prompt}]}]}
+    res = requests.post(gen_url, json=payload).json()
     
-    headers = {'Content-Type': 'application/json'}
+    raw_text = res['candidates'][0]['content']['parts'][0]['text']
     
-    # Запит до штучного інтелекту
-    response = requests.post(gen_url, headers=headers, data=json.dumps(payload))
-    res_data = response.json()
+    # Витягуємо SLUG за допомогою регулярки
+    slug_match = re.search(r'\[SLUG:(.*?)\]', raw_text)
+    slug = slug_match.group(1).strip() if slug_match else "scenario"
     
-    if response.status_code != 200:
-        print(f"❌ Помилка Gemini: {res_data}")
-        return
+    # Очищаємо основний текст
+    full_content = clean_html(raw_text.replace(f"[SLUG:{slug}]", ""))
 
-    # Отримання тексту сценарію
-    try:
-        content_html = res_data['candidates'][0]['content']['parts'][0]['text']
-    except (KeyError, IndexError):
-        print("❌ Не вдалося отримати текст з відповіді AI")
-        return
-
-    # 3. Публікація в WordPress
+    # 2. Публікація в WordPress
     auth = (wp_user, wp_password)
     post_data = {
         "title": f"Сценарій: {topic}",
-        "content": content_html,
+        "content": full_content,
+        "slug": slug, # Це виправить посилання на англійське
         "status": "publish"
     }
 
-    print("Надсилаємо результат на WordPress...")
-    res = requests.post(wp_url, auth=auth, json=post_data)
+    print(f"Публікуємо з посиланням: {slug}...")
+    wp_res = requests.post(wp_url, auth=auth, json=post_data)
 
-    if res.status_code == 201:
-        print("✅ Успіх! Сценарій опубліковано на сайті scenariy.pp.ua")
+    if wp_res.status_code == 201:
+        print(f"✅ Успіх! [http://scenariy.pp.ua/](http://scenariy.pp.ua/){slug}/")
     else:
-        print(f"❌ Помилка WordPress: {res.status_code} - {res.text}")
+        print(f"❌ Помилка: {wp_res.text}")
 
 if __name__ == "__main__":
-    if not gemini_key:
-        print("❌ Помилка: Відсутній GEMINI_API_KEY у секретах GitHub")
-    else:
-        generate_and_post()
+    generate_and_post()
