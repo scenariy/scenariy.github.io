@@ -1,0 +1,28 @@
+name: Generate Scenario
+on:
+  repository_dispatch:
+    types: [start-generation]
+
+jobs:
+  run-ai:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install google-generativeai requests
+
+      - name: Run generation script
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          WP_PASSWORD: ${{ secrets.WP_PASSWORD }}
+          TOPIC: ${{ github.event.client_payload.topic }}
+          AUDIENCE: ${{ github.event.client_payload.audience }}
+        run: python main.py
