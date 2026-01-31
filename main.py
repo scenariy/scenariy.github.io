@@ -16,7 +16,7 @@ def generate_and_post():
     print(f"Генеруємо сценарій за допомогою Gemini 2.0 Flash для теми: {topic}...")
     
     # ПРЯМИЙ URL ДО МОДЕЛІ 2.0 FLASH
-    gen_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}"
+    gen_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
     
     prompt = f"Напиши детальний сценарій заходу на тему: {topic}. Аудиторія: {audience}. Мова: Українська. Оформи як HTML (використовуй <h2>, <p>, <ul>, <li>)."
     
