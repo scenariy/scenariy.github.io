@@ -8,7 +8,7 @@ topic = os.getenv("TOPIC")
 audience = os.getenv("AUDIENCE")
 gemini_key = os.getenv("GEMINI_API_KEY")
 wp_password = os.getenv("WP_PASSWORD")
-wp_user = "4731017_wpresse934f6d9" 
+wp_user = os.getenv("WP_USER") 
 wp_url = "http://scenariy.pp.ua/index.php?rest_route=/wp/v2/posts"
 
 def clean_content(text):
