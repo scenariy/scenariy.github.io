@@ -9,69 +9,75 @@ audience = os.getenv("AUDIENCE")
 gemini_key = os.getenv("GEMINI_API_KEY")
 wp_password = os.getenv("WP_PASSWORD")
 wp_user = os.getenv("WP_USER") 
-wp_url = "http://scenariy.pp.ua/index.php?rest_route=/wp/v2/posts"
-
-def clean_content(text):
-    text = re.sub(r'```html', '', text)
-    text = re.sub(r'```', '', text)
-    return text.strip()
+base_url = "http://scenariy.pp.ua/index.php?rest_route="
 
 def generate_and_post():
-    print(f"Генеруємо сценарій для: {topic}...")
+    # 1. Завантажуємо базу даних
+    db = {"topics": {}}
+    if os.path.exists("database.json"):
+        with open("database.json", "r", encoding="utf-8") as f:
+            db = json.load(f)
+
+    print(f"Аналіз теми: {topic}")
     
-    # Очищуємо URL від можливих лінків/дужок, які додає редактор
-    raw_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}"
-    gen_url = raw_url.replace('[', '').replace(']', '').replace('(', '').replace(')', '').strip()
+    # 2. Запит до ШІ для визначення батьківської категорії та контенту
+    gen_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}"
     
     prompt = f"""
-    Ти - професійний сценарист. Напиши детальний сценарій заходу на тему: {topic}. 
-    Аудиторія: {audience}. Мова: Українська. 
-    Оформи як HTML (h2, p, ul, li).
+    Ти - архітектор контенту. Тема: "{topic}".
+    1. Визнач основне свято (наприклад, "День матері").
+    2. Придумай для нього англійський slug (наприклад, "den-materi").
+    3. Напиши детальний сценарій для "{audience}" у форматі HTML (h2, p, li).
     
-    В самому кінці відповіді додай рядок: 
-    SLUG: [тут напиши англійське посилання для цієї теми латиницею]
+    Відповідь надай СУВОРО у форматі JSON:
+    {{
+      "parent_topic": "Назва свята",
+      "parent_slug": "slug-svyata",
+      "post_title": "Повна назва сценарію",
+      "content": "HTML текст сценарію"
+    }}
     """
     
-    payload = {"contents": [{"parts": [{"text": prompt}]}]}
+    res = requests.post(gen_url, json={"contents": [{"parts": [{"text": prompt}]}]}).json()
+    # Очищення відповіді ШІ від можливих маркерів коду
+    raw_json = res['candidates'][0]['content']['parts'][0]['text'].replace('```json', '').replace('```', '').strip()
+    data = json.loads(raw_json)
+
+    # 3. Робота з базою: чи є вже таке свято?
+    parent_slug = db["topics"].get(data["parent_topic"], data["parent_slug"])
     
-    try:
-        response = requests.post(gen_url, json=payload)
-        response.raise_for_status()
-        res_data = response.json()
-    except Exception as e:
-        print(f"❌ Помилка запиту до Gemini: {e}")
-        return
+    # Отримуємо ID категорії в WP або створюємо її (спрощено - використовуємо slug)
+    print(f"Свято: {data['parent_topic']} -> /{parent_slug}/")
 
-    raw_text = res_data['candidates'][0]['content']['parts'][0]['text']
-    
-    # Шукаємо SLUG
-    slug = "scenario"
-    if "SLUG:" in raw_text:
-        parts = raw_text.split("SLUG:")
-        main_text = parts[0]
-        slug_raw = parts[1].strip().split('\n')[0]
-        slug = re.sub(r'[^a-z0-9\-]', '', slug_raw.lower())
-    else:
-        main_text = raw_text
-
-    full_content = clean_content(main_text)
-
-    # Публікація в WordPress
+    # 4. Публікація сценарію
     auth = (wp_user, wp_password)
+    
+    # Генеруємо унікальне підпосилання: /den-materi/scenariy-N
+    # Для простоти додаємо timestamp, щоб не було дублів
+    import time
+    sub_slug = f"scenariy-{int(time.time())}"
+
     post_data = {
-        "title": topic,
-        "content": full_content,
-        "slug": slug,
+        "title": data["post_title"],
+        "content": f"<h1>{data['post_title']}</h1>" + data["content"], # Фікс (no title)
+        "slug": sub_slug,
         "status": "publish"
     }
 
-    print(f"Надсилаємо в WordPress... Slug: {slug}")
-    wp_res = requests.post(wp_url, auth=auth, json=post_data)
+    # Надсилаємо пост
+    wp_res = requests.post(f"{base_url}/wp/v2/posts", auth=auth, json=post_data)
 
     if wp_res.status_code == 201:
-        print(f"✅ Успіх! http://scenariy.pp.ua/{slug}/")
+        # Оновлюємо базу, якщо свято нове
+        if data["parent_topic"] not in db["topics"]:
+            db["topics"][data["parent_topic"]] = data["parent_slug"]
+            with open("database.json", "w", encoding="utf-8") as f:
+                json.dump(db, f, ensure_ascii=False, indent=2)
+        
+        print(f"✅ Готово! Сценарій додано до розділу {data['parent_topic']}")
+        print(f"URL: http://scenariy.pp.ua/{parent_slug}/{sub_slug}/")
     else:
-        print(f"❌ Помилка WP: {wp_res.status_code} - {wp_res.text}")
+        print(f"❌ Помилка WP: {wp_res.text}")
 
 if __name__ == "__main__":
     generate_and_post()
