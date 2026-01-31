@@ -9,8 +9,8 @@ gemini_key = os.getenv("GEMINI_API_KEY")
 wp_password = os.getenv("WP_PASSWORD")
 
 # Налаштування твого сайту
-wp_user = "4731017_wpresse934f6d9" 
-wp_url = "http://scenariy.pp.ua/wp-json/wp/v2/posts"
+wp_user = "scenariy" 
+wp_url = "http://scenariy.pp.ua/index.php?rest_route=/wp/v2/posts"
 
 def generate_and_post():
     print(f"Генеруємо сценарій за допомогою Gemini 2.0 Flash для теми: {topic}...")
