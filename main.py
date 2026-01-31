@@ -15,7 +15,7 @@ wp_url = "http://scenariy.pp.ua/wp-json/wp/v2/posts"
 def generate_and_post():
     # 2. Налаштування Gemini
     genai.configure(api_key=gemini_key)
-    model = genai.GenerativeModel('gemini-1.5-flash') # Швидка версія
+    model = genai.GenerativeModel('gemini-2.0-flash') # Швидка версія
     
     prompt = f"""
     Напиши детальний, цікавий сценарій для шкільного чи позашкільного заходу.
