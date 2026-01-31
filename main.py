@@ -1,32 +1,49 @@
 import os
 import requests
-from google import genai
+import json
 
-# 1. Отримуємо змінні
+# 1. Отримання даних з оточення GitHub Actions
 topic = os.getenv("TOPIC")
 audience = os.getenv("AUDIENCE")
 gemini_key = os.getenv("GEMINI_API_KEY")
 wp_password = os.getenv("WP_PASSWORD")
 
+# Налаштування твого сайту
 wp_user = "4731017_wpresse934f6d9" 
 wp_url = "http://scenariy.pp.ua/wp-json/wp/v2/posts"
 
 def generate_and_post():
-    # 2. Новий спосіб ініціалізації клієнта
-    client = genai.Client(api_key=gemini_key)
+    print(f"Генеруємо сценарій за допомогою Gemini 2.0 Flash для теми: {topic}...")
     
-    prompt = f"Напиши детальний HTML-сценарій для заходу: {topic}. Аудиторія: {audience}. Мова: Українська."
-
-    print(f"Генеруємо сценарій...")
-    # Використовуємо стабільну модель 1.5-flash
-    response = client.models.generate_content(
-        model="gemini-1.5-flash", 
-        contents=prompt
-    )
+    # ПРЯМИЙ URL ДО МОДЕЛІ 2.0 FLASH
+    gen_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}"
     
-    content_html = response.text
+    prompt = f"Напиши детальний сценарій заходу на тему: {topic}. Аудиторія: {audience}. Мова: Українська. Оформи як HTML (використовуй <h2>, <p>, <ul>, <li>)."
+    
+    payload = {
+        "contents": [{
+            "parts": [{"text": prompt}]
+        }]
+    }
+    
+    headers = {'Content-Type': 'application/json'}
+    
+    # Запит до штучного інтелекту
+    response = requests.post(gen_url, headers=headers, data=json.dumps(payload))
+    res_data = response.json()
+    
+    if response.status_code != 200:
+        print(f"❌ Помилка Gemini: {res_data}")
+        return
 
-    # 3. Публікація
+    # Отримання тексту сценарію
+    try:
+        content_html = res_data['candidates'][0]['content']['parts'][0]['text']
+    except (KeyError, IndexError):
+        print("❌ Не вдалося отримати текст з відповіді AI")
+        return
+
+    # 3. Публікація в WordPress
     auth = (wp_user, wp_password)
     post_data = {
         "title": f"Сценарій: {topic}",
@@ -34,13 +51,16 @@ def generate_and_post():
         "status": "publish"
     }
 
-    print("Надсилаємо в WordPress...")
+    print("Надсилаємо результат на WordPress...")
     res = requests.post(wp_url, auth=auth, json=post_data)
 
     if res.status_code == 201:
-        print("✅ Готово! Перевіряй сайт.")
+        print("✅ Успіх! Сценарій опубліковано на сайті scenariy.pp.ua")
     else:
-        print(f"❌ Помилка WP: {res.status_code} - {res.text}")
+        print(f"❌ Помилка WordPress: {res.status_code} - {res.text}")
 
 if __name__ == "__main__":
-    generate_and_post()
+    if not gemini_key:
+        print("❌ Помилка: Відсутній GEMINI_API_KEY у секретах GitHub")
+    else:
+        generate_and_post()
