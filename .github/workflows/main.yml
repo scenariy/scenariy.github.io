@@ -28,6 +28,7 @@ jobs:
           WP_USER: ${{ secrets.WP_USER }}
           TOPIC: ${{ github.event.client_payload.topic }}
           AUDIENCE: ${{ github.event.client_payload.audience }}
+          WISHES: ${{ github.event.client_payload.wishes }}
         run: python main.py
 
       - name: Commit and push changes
