@@ -7,6 +7,7 @@ import time
 # Налаштування
 topic = os.getenv("TOPIC")
 audience = os.getenv("AUDIENCE")
+wishes = os.getenv("WISHES", "")
 gemini_key = os.getenv("GEMINI_API_KEY")
 wp_password = os.getenv("WP_PASSWORD")
 wp_user = os.getenv("WP_USER") 
@@ -32,7 +33,10 @@ def generate_and_post():
     # 2. Промпт з логікою перевірки дублікатів
     prompt = f"""
     Ти - SEO-експерт та архітектор контенту. 
-    Твоє завдання: класифікувати захід "{topic}" та написати сценарій для "{audience}".
+    Твоє завдання: класифікувати захід "{topic}" та написати сценарій для "{audience}", враховуючи вік та можливості аудиторії.
+
+    ОСОБЛИВІ ПОБАЖАННЯ КОРИСТУВАЧА (врахуй їх обов'язково):
+    "{wishes}"
     
     КРОК 1: АНАЛІЗ КАТЕГОРІЇ
     - Перевір існуючі категорії: {existing_slugs}.
