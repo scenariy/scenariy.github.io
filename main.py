@@ -89,6 +89,11 @@ def generate_and_post():
 
     # 4. Дизайн (Dark UI)
     html_template = f"""
+    <div style='display: flex; gap: 10px; justify-content: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #333;'>
+            <button onclick='window.print()' style='background: #3498db; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;'>🖨️ Друк</button>
+            <a href='https://t.me/share/url?url=http://scenariy.pp.ua/{final_post_slug}/' target='_blank' style='background: #0088cc; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: bold;'>✈️ Telegram</a>
+            <a href='viber://forward?text=http://scenariy.pp.ua/{final_post_slug}/' style='background: #7360f2; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: bold;'>💜 Viber</a>
+        </div>
     <div style="background-color: #1a1a1a !important; color: #eeeeee !important; font-family: 'Inter', -apple-system, sans-serif; padding: 35px; border-radius: 12px; max-width: 800px; margin: 0 auto; line-height: 1.6; border: 1px solid #333;">
         <div style="text-align: center; margin-bottom: 30px;">
             <div style="display: inline-block; background-color: #f1c40f !important; color: #000000 !important; padding: 4px 14px; border-radius: 4px; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">
