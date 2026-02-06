@@ -59,6 +59,7 @@ def generate_and_post():
       "category_name": "Офіційна повна назва свята українською",
       "category_slug": "international-standard-slug",
       "post_title": "Красива назва сценарію",
+      "seo_description": "Короткий опис сценарію (2-3 речення), про що він та які ключові особливості",
       "intro": "Вступ (без заголовка)",
       "roles": "Список li",
       "main_script": "Хід подій HTML (p, li, h4)",
@@ -96,6 +97,15 @@ def generate_and_post():
                 {data['category_name']}
             </div>
             <p style='color: #666; font-size: 13px; margin-top: 10px;'>Для аудиторії: {audience}</p>
+        </div>
+
+        <div style='margin-bottom: 25px;'>
+            <details style='background: #1f1f1f; border: 1px dashed #444; border-radius: 8px; cursor: pointer;'>
+                <summary style='padding: 10px; color: #f1c40f; font-size: 14px; font-weight: bold;'>📝 Короткий опис сценарію (SEO)</summary>
+                <div style='padding: 10px; color: #aaa; font-size: 14px; border-top: 1px solid #333;'>
+                    {data.get('seo_description', 'Сценарій підготовлено за індивідуальним запитом.')}
+                </div>
+            </details>
         </div>
 
         <div style='background: #252525; padding: 20px; border-radius: 8px; border-left: 4px solid #f1c40f; margin-bottom: 30px;'>
