@@ -88,7 +88,7 @@ def generate_and_post():
         raw_response = res['candidates'][0]['content']['parts'][0]['text']
         
         # Видаляємо можливі залишки символів перенесення рядка та невидимі пробіли
-        clean_json = raw_response.strip()
+        clean_json = re.sub(r'(?<![:{,])"(?![:},])', "'", raw_response.strip())
         
         # Завантажуємо дані
         data = json.loads(clean_json, strict=False)
