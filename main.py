@@ -71,7 +71,6 @@ def generate_and_post():
     """
     
     try:
-        # Додаємо параметр response_mime_type, щоб змусити модель видавати ТІЛЬКИ JSON
         payload = {
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {
@@ -84,6 +83,27 @@ def generate_and_post():
         if 'candidates' not in res:
             print(f"❌ Помилка API Gemini: {res}")
             return
+
+        raw_response = res['candidates'][0]['content']['parts'][0]['text']
+        
+        # 1. Очищуємо текст від невидимих символів на початку/в кінці
+        clean_json = raw_response.strip()
+        
+        # 2. Видаляємо можливі невидимі символи UTF-8 BOM
+        clean_json = clean_json.encode('utf-8').decode('utf-8-sig')
+
+        # 3. Додаткова страховка для лапок всередині тексту
+        clean_json = re.sub(r'(?<![:{,])"(?![:},])', "'", clean_json)
+        
+        # Завантажуємо дані
+        data = json.loads(clean_json, strict=False)
+        
+    except Exception as e:
+        print(f"❌ Помилка AI або JSON: {e}")
+        # Виводимо перші 100 символів у HEX-форматі для точної діагностики, якщо помилка лишилася
+        if 'raw_response' in locals():
+            print(f"DEBUG (перші 100 симв): {repr(raw_response[:100])}")
+        return
 
         raw_response = res['candidates'][0]['content']['parts'][0]['text']
         
