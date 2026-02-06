@@ -74,14 +74,22 @@ def generate_and_post():
         res = requests.post(gen_url, json={"contents": [{"parts": [{"text": prompt}]}]}).json()
         raw_response = res['candidates'][0]['content']['parts'][0]['text']
         
-        # Видаляємо маркування коду Markdown
+        # 1. Очищення від маркування Markdown
         raw_json = re.sub(r'```json|```', '', raw_response).strip()
         
-        # Використовуємо strict=False для ігнорування проблемних символів
-        data = json.loads(raw_json, strict=False)
+        # 2. Магія очищення: замінюємо подвійні лапки всередині тексту, 
+        # але залишаємо ті, що стосуються назв ключів JSON
+        # Це виправляє помилку "Expecting , delimiter"
+        fixed_json = re.sub(r'(?<![:{,])"(?![:},])', "'", raw_json)
+        
+        # 3. Видаляємо можливі переноси рядків всередині значень
+        fixed_json = fixed_json.replace('\n', ' ').replace('\r', '')
+        
+        data = json.loads(fixed_json, strict=False)
     except Exception as e:
         print(f"❌ Помилка AI або JSON: {e}")
-        print(f"Отримана відповідь: {raw_response[:500]}...") # Покаже частину тексту для діагностики
+        # Виводимо частину відповіді для аналізу, якщо помилка лишилася
+        print(f"Проблемний шматок: {raw_json[3400:3600]}...") 
         return
 
     # 3. Логіка оновлення бази (тепер вона розумна)
