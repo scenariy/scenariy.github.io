@@ -73,10 +73,15 @@ def generate_and_post():
     try:
         res = requests.post(gen_url, json={"contents": [{"parts": [{"text": prompt}]}]}).json()
         raw_response = res['candidates'][0]['content']['parts'][0]['text']
+        
+        # Видаляємо маркування коду Markdown
         raw_json = re.sub(r'```json|```', '', raw_response).strip()
-        data = json.loads(raw_json)
+        
+        # Використовуємо strict=False для ігнорування проблемних символів
+        data = json.loads(raw_json, strict=False)
     except Exception as e:
         print(f"❌ Помилка AI або JSON: {e}")
+        print(f"Отримана відповідь: {raw_response[:500]}...") # Покаже частину тексту для діагностики
         return
 
     # 3. Логіка оновлення бази (тепер вона розумна)
