@@ -71,25 +71,33 @@ def generate_and_post():
     """
     
     try:
-        res = requests.post(gen_url, json={"contents": [{"parts": [{"text": prompt}]}]}).json()
+        # Додаємо параметр response_mime_type, щоб змусити модель видавати ТІЛЬКИ JSON
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {
+                "response_mime_type": "application/json"
+            }
+        }
+        
+        res = requests.post(gen_url, json=payload).json()
+        
+        if 'candidates' not in res:
+            print(f"❌ Помилка API Gemini: {res}")
+            return
+
         raw_response = res['candidates'][0]['content']['parts'][0]['text']
         
-        # 1. Очищення від маркування Markdown
-        raw_json = re.sub(r'```json|```', '', raw_response).strip()
+        # Видаляємо можливі залишки символів перенесення рядка та невидимі пробіли
+        clean_json = raw_response.strip()
         
-        # 2. Магія очищення: замінюємо подвійні лапки всередині тексту, 
-        # але залишаємо ті, що стосуються назв ключів JSON
-        # Це виправляє помилку "Expecting , delimiter"
-        fixed_json = re.sub(r'(?<![:{,])"(?![:},])', "'", raw_json)
+        # Завантажуємо дані
+        data = json.loads(clean_json, strict=False)
         
-        # 3. Видаляємо можливі переноси рядків всередині значень
-        fixed_json = fixed_json.replace('\n', ' ').replace('\r', '')
-        
-        data = json.loads(fixed_json, strict=False)
     except Exception as e:
         print(f"❌ Помилка AI або JSON: {e}")
-        # Виводимо частину відповіді для аналізу, якщо помилка лишилася
-        print(f"Проблемний шматок: {raw_json[3400:3600]}...") 
+        # Якщо помилка все ще є, виводимо початок відповіді для діагностики
+        if 'raw_response' in locals():
+            print(f"Отримана відповідь (перші 200 симв): {raw_response[:200]}...")
         return
 
     # 3. Логіка оновлення бази (тепер вона розумна)
