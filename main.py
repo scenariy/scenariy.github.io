@@ -88,31 +88,42 @@ def generate_and_post():
     final_post_slug = f"{c_slug}-scenariy-{scenario_num}"
 
     # 4. Дизайн (Dark UI)
+    # 4. Дизайн (Dark UI) з кнопками та навігацією
     html_template = f"""
-    <div style='display: flex; gap: 10px; justify-content: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #333;'>
-            <button onclick='window.print()' style='background: #3498db; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;'>🖨️ Друк</button>
-            <a href='https://t.me/share/url?url=http://scenariy.pp.ua/{final_post_slug}/' target='_blank' style='background: #0088cc; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: bold;'>✈️ Telegram</a>
-            <a href='viber://forward?text=http://scenariy.pp.ua/{final_post_slug}/' style='background: #7360f2; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: bold;'>💜 Viber</a>
-        </div>
-    <div style="background-color: #1a1a1a !important; color: #eeeeee !important; font-family: 'Inter', -apple-system, sans-serif; padding: 35px; border-radius: 12px; max-width: 800px; margin: 0 auto; line-height: 1.6; border: 1px solid #333;">
-        <div style="text-align: center; margin-bottom: 30px;">
-            <div style="display: inline-block; background-color: #f1c40f !important; color: #000000 !important; padding: 4px 14px; border-radius: 4px; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">
+    <div style='background-color: #1a1a1a !important; color: #eeeeee !important; font-family: "Inter", sans-serif; padding: 35px; border-radius: 12px; max-width: 800px; margin: 0 auto; line-height: 1.6; border: 1px solid #333;'>
+        <div style='text-align: center; margin-bottom: 30px;'>
+            <div style='display: inline-block; background-color: #f1c40f !important; color: #000000 !important; padding: 4px 14px; border-radius: 4px; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;'>
                 {data['category_name']}
             </div>
-            <p style="color: #666; font-size: 13px; margin-top: 10px;">Для аудиторії: {audience}</p>
+            <p style='color: #666; font-size: 13px; margin-top: 10px;'>Для аудиторії: {audience}</p>
         </div>
-        <div style="background: #252525; padding: 20px; border-radius: 8px; border-left: 4px solid #f1c40f; margin-bottom: 30px;">
-            <p style="margin: 0; color: #ddd; font-style: italic;">{data['intro']}</p>
+
+        <div style='background: #252525; padding: 20px; border-radius: 8px; border-left: 4px solid #f1c40f; margin-bottom: 30px;'>
+            <p style='margin: 0; color: #ddd; font-style: italic;'>{data['intro']}</p>
         </div>
-        <div style="margin-bottom: 35px;">
-            <h3 style="color: #f1c40f; font-size: 19px; border-bottom: 1px solid #333; padding-bottom: 8px;">🎭 Дійові особи</h3>
-            <ul style="padding-left: 20px; color: #bbb;">{data['roles']}</ul>
+        
+        <div style='margin-bottom: 35px;'>
+            <h3 style='color: #f1c40f; font-size: 19px; border-bottom: 1px solid #333; padding-bottom: 8px;'>🎭 Дійові особи</h3>
+            <ul style='padding-left: 20px; color: #bbb;'>{data['roles']}</ul>
         </div>
-        <div style="margin-bottom: 35px;">
-            <h3 style="color: #3498db; font-size: 19px; border-bottom: 1px solid #333; padding-bottom: 8px;">📜 Сценарій заходу</h3>
-            <div style="color: #ccc;">{data['main_script']}</div>
+
+        <div style='margin-bottom: 35px;'>
+            <h3 style='color: #3498db; font-size: 19px; border-bottom: 1px solid #333; padding-bottom: 8px;'>📜 Сценарій заходу</h3>
+            <div style='color: #ccc;'>{data['main_script']}</div>
         </div>
-        <div style="text-align: center; border-top: 1px solid #333; padding-top: 20px; color: #555; font-size: 14px;">
+
+        <div style='display: flex; gap: 10px; justify-content: center; margin: 30px 0; flex-wrap: wrap;'>
+            <button onclick='window.print()' style='background: #3498db; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;'>🖨️ Друк</button>
+            <a href='https://t.me/share/url?url=http://scenariy.pp.ua/{final_post_slug}/' target='_blank' style='text-decoration: none; background: #0088cc; color: #fff; padding: 10px 20px; border-radius: 6px; font-weight: bold;'>✈️ Telegram</a>
+            <a href='viber://forward?text=http://scenariy.pp.ua/{final_post_slug}/' style='text-decoration: none; background: #7360f2; color: #fff; padding: 10px 20px; border-radius: 6px; font-weight: bold;'>💜 Viber</a>
+        </div>
+
+        <div style='display: flex; gap: 10px; justify-content: center; margin-bottom: 30px;'>
+            <a href='http://scenariy.pp.ua/7-2/' style='background: #f1c40f; color: #000; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 14px;'>✨ Створити свій</a>
+            <a href='http://scenariy.pp.ua/category/{c_slug}/' style='background: #333; color: #fff; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 14px;'>📚 Інші сценарії</a>
+        </div>
+
+        <div style='text-align: center; border-top: 1px solid #333; padding-top: 20px; color: #555; font-size: 14px;'>
             {data['conclusion']}
         </div>
     </div>
