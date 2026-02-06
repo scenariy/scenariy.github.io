@@ -30,7 +30,7 @@ def generate_and_post():
 
     gen_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}"
     
-    # 2. Промпт з логікою перевірки дублікатів
+    # 2. Промпт (БЕЗ ЖОДНИХ ЗМІН)
     prompt = f"""
     Ти - SEO-експерт та архітектор контенту. 
     Твоє завдання: класифікувати захід "{topic}" та написати сценарій для "{audience}". Враховуючи вік та можливості аудиторії, а також масштаби.
@@ -54,7 +54,7 @@ def generate_and_post():
     
     ВАЖЛИВО ДЛЯ JSON:
     - Увесь HTML-код ПОВИНЕН використовувати тільки одинарні лапки для атрибутів: <div style='color:red'>.
-    - У тексті ЗАБОРОНЕНО використовувати подвійні лапки ("). Замість них використовуй одинарні (') або лапки-ялинки (« »).
+    - У тексті ЗАБОРОНЕНО використовувати подвійні лапки ("). Замість них використовуй одинарні (') або лапки-ялинки « » (лапки-ялинки).
     - Не використовуй символи перенесення рядка всередині значень JSON, використовуй теги <p> або <br>.
 
     Відповідь СУВОРО JSON:
@@ -86,41 +86,20 @@ def generate_and_post():
 
         raw_response = res['candidates'][0]['content']['parts'][0]['text']
         
-        # 1. Очищуємо текст від невидимих символів на початку/в кінці
-        clean_json = raw_response.strip()
-        
-        # 2. Видаляємо можливі невидимі символи UTF-8 BOM
-        clean_json = clean_json.encode('utf-8').decode('utf-8-sig')
-
-        # 3. Додаткова страховка для лапок всередині тексту
+        # Очищення результату
+        clean_json = raw_response.strip().encode('utf-8').decode('utf-8-sig')
+        # Заміна лапок всередині тексту, щоб не ламати JSON
         clean_json = re.sub(r'(?<![:{,])"(?![:},])', "'", clean_json)
         
-        # Завантажуємо дані
         data = json.loads(clean_json, strict=False)
         
     except Exception as e:
         print(f"❌ Помилка AI або JSON: {e}")
-        # Виводимо перші 100 символів у HEX-форматі для точної діагностики, якщо помилка лишилася
         if 'raw_response' in locals():
             print(f"DEBUG (перші 100 симв): {repr(raw_response[:100])}")
         return
 
-        raw_response = res['candidates'][0]['content']['parts'][0]['text']
-        
-        # Видаляємо можливі залишки символів перенесення рядка та невидимі пробіли
-        clean_json = re.sub(r'(?<![:{,])"(?![:},])', "'", raw_response.strip())
-        
-        # Завантажуємо дані
-        data = json.loads(clean_json, strict=False)
-        
-    except Exception as e:
-        print(f"❌ Помилка AI або JSON: {e}")
-        # Якщо помилка все ще є, виводимо початок відповіді для діагностики
-        if 'raw_response' in locals():
-            print(f"Отримана відповідь (перші 200 симв): {raw_response[:200]}...")
-        return
-
-    # 3. Логіка оновлення бази (тепер вона розумна)
+    # 3. Логіка оновлення бази
     c_slug = data["category_slug"]
     
     if c_slug not in db["topics"]:
@@ -129,11 +108,9 @@ def generate_and_post():
     scenario_num = len(db["topics"][c_slug]) + 1
     db["topics"][c_slug].append(scenario_num)
     
-    # Формуємо URL: категорія + номер сценарію
     final_post_slug = f"{c_slug}-scenariy-{scenario_num}"
 
-    # 4. Дизайн (Dark UI)
-    # 4. Дизайн (Dark UI) з кнопками та навігацією
+    # 4. Дизайн (Dark UI) - ВАШ ОРИГІНАЛЬНИЙ ШАБЛОН
     html_template = f"""
     <div style='background-color: #1a1a1a !important; color: #eeeeee !important; font-family: "Inter", sans-serif; padding: 35px; border-radius: 12px; max-width: 800px; margin: 0 auto; line-height: 1.6; border: 1px solid #333;'>
         <div style='text-align: center; margin-bottom: 30px;'>
@@ -195,7 +172,6 @@ def generate_and_post():
     wp_res = requests.post(f"{base_url}/wp/v2/posts", auth=auth, json=post_data)
 
     if wp_res.status_code == 201:
-        # Зберігаємо оновлену розумну базу
         with open("database.json", "w", encoding="utf-8") as f:
             json.dump(db, f, ensure_ascii=False, indent=2)
         print(f"✅ Успіх! Категорія: {c_slug}. Посилання: http://scenariy.pp.ua/{final_post_slug}/")
