@@ -149,10 +149,11 @@ def generate_and_post():
         </div>
 
         <div style='display: flex; gap: 12px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap;'>
-            <a href='http://scenariy.pp.ua/7-2/' style='text-decoration: none; background: linear-gradient(135s, #f1c40f 0%, #d4ac0d 100%); color: #000; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 15px; box-shadow: 0 4px 15px rgba(241, 196, 15, 0.3); display: flex; align-items: center; gap: 8px;'>
+            <a href='http://scenariy.pp.ua/7-2/' style='text-decoration: none; background: #444; color: #fff; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 15px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); display: flex; align-items: center; gap: 8px;'>
                 <span>✨</span> Створити власний сценарій
             </a>
-            <a href='http://scenariy.pp.ua/category/{c_slug}/' style='text-decoration: none; background: rgba(255,255,255,0.05); color: #bbb; padding: 12px 24px; border-radius: 10px; font-weight: bold; font-size: 15px; border: 1px solid #444;'>
+
+            <a href='http://scenariy.pp.ua/category/{c_slug}/' style='text-decoration: none; background: rgba(255,255,255,0.05); color: #bbb; padding: 12px 24px; border-radius: 10px; font-weight: bold; font-size: 15px; border: 1px solid #444; display: flex; align-items: center; justify-content: center;'>
                 📚 Всі сценарії категорії
             </a>
         </div>
