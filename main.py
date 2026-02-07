@@ -29,6 +29,8 @@ def generate_and_post():
     print(f"Існуючі категорії в базі: {existing_slugs}")
 
     gen_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}"
+    
+    # 2. Промпт (твій оригінальний, без змін тексту)
     prompt = f"""
     Ти - SEO-експерт та архітектор контенту. 
     Твоє завдання: класифікувати захід "{topic}" та написати сценарій для "{audience}". Враховуючи вік та можливості аудиторії, а також масштаби.
@@ -69,13 +71,13 @@ def generate_and_post():
     """
     
     try:
+        # Надсилаємо запит
         payload = {
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {
                 "response_mime_type": "application/json"
             }
         }
-        
         res = requests.post(gen_url, json=payload).json()
         
         if 'candidates' not in res:
@@ -84,14 +86,12 @@ def generate_and_post():
 
         raw_response = res['candidates'][0]['content']['parts'][0]['text']
         
-        # ТЕХНІЧНА ПРАВКА ОЧИЩЕННЯ:
-        # Видаляємо переноси рядків (\n), які ламають парсинг у деяких середовищах
-        clean_json = raw_response.replace('\n', ' ').strip()
-        # Видаляємо BOM
+        # ОЧИЩЕННЯ (Метод зі старого скрипта + підтримка нових полів)
+        clean_json = re.sub(r'```json|```', '', raw_response).strip()
+        # Додатково прибираємо невидимі символи
         clean_json = clean_json.encode('utf-8').decode('utf-8-sig')
-        # Фікс лапок всередині значень
-        clean_json = re.sub(r'(?<![:{,])"(?![:},])', "'", clean_json)
         
+        # Завантажуємо дані (strict=False ігнорує переноси всередині рядків)
         data = json.loads(clean_json, strict=False)
         
     except Exception as e:
@@ -102,16 +102,14 @@ def generate_and_post():
 
     # 3. Логіка оновлення бази
     c_slug = data["category_slug"]
-    
     if c_slug not in db["topics"]:
         db["topics"][c_slug] = []
     
     scenario_num = len(db["topics"][c_slug]) + 1
     db["topics"][c_slug].append(scenario_num)
-    
     final_post_slug = f"{c_slug}-scenariy-{scenario_num}"
 
-    # 4. Дизайн (Dark UI)
+    # 4. Дизайн (Твій оригінальний шаблон)
     html_template = f"""
     <div style='background-color: #1a1a1a !important; color: #eeeeee !important; font-family: "Inter", sans-serif; padding: 35px; border-radius: 12px; max-width: 800px; margin: 0 auto; line-height: 1.6; border: 1px solid #333;'>
         <div style='text-align: center; margin-bottom: 30px;'>
