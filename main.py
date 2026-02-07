@@ -148,15 +148,16 @@ def generate_and_post():
             <a href='viber://forward?text=http://scenariy.pp.ua/{final_post_slug}/' style='text-decoration: none; background: #7360f2; color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 14px;'>💜 Viber</a>
         </div>
 
-        <div style='display: flex; gap: 12px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap;'>
-            <a href='http://scenariy.pp.ua/7-2/' style='text-decoration: none; background: rgba(255,255,255,0.05); color: #fff; height: 48px; padding: 0 24px; border-radius: 10px; font-weight: bold; font-size: 15px; box-shadow: 0 4px 15px rgba(241, 196, 15, 0.3); display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #444; min-width: 250px; box-sizing: border-box;'>
-                <span>✨</span> Створити власний сценарій
-            </a>
-        
-            <a href='http://scenariy.pp.ua/category/{c_slug}/' style='text-decoration: none; background: rgba(255,255,255,0.05); color: #bbb; height: 48px; padding: 0 24px; border-radius: 10px; font-weight: bold; font-size: 15px; border: 1px solid #444; display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 250px; box-sizing: border-box;'>
-                <span>📚</span> Всі сценарії категорії
-            </a>
-        </div>
+        <div style='display: flex; gap: 12px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap; align-items: center;'>
+         <a href='http://scenariy.pp.ua/7-2/' style='text-decoration: none; background: rgba(255,255,255,0.05); color: #fff; height: 50px; padding: 0 24px; border-radius: 10px; font-weight: bold; font-size: 15px; box-shadow: 0 4px 15px rgba(241, 196, 15, 0.3); display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 1px solid #444; min-width: 260px; box-sizing: border-box; vertical-align: middle;'>
+         <span style='line-height: 1;'>✨</span> <span>Створити власний сценарій</span>
+        </a>
+
+        <a href='http://scenariy.pp.ua/category/{c_slug}/' style='text-decoration: none; background: rgba(255,255,255,0.05); color: #bbb; height: 50px; padding: 0 24px; border-radius: 10px; font-weight: bold; font-size: 15px; border: 1px solid #444; display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-width: 260px; box-sizing: border-box; vertical-align: middle;'>
+            <span style='line-height: 1;'>📚</span> <span>Всі сценарії категорії</span>
+        </a>
+    </div>
+
 
     </div>
     """
