@@ -29,8 +29,6 @@ def generate_and_post():
     print(f"Існуючі категорії в базі: {existing_slugs}")
 
     gen_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}"
-    
-    # 2. Промпт (БЕЗ ЖОДНИХ ЗМІН)
     prompt = f"""
     Ти - SEO-експерт та архітектор контенту. 
     Твоє завдання: класифікувати захід "{topic}" та написати сценарій для "{audience}". Враховуючи вік та можливості аудиторії, а також масштаби.
@@ -86,9 +84,12 @@ def generate_and_post():
 
         raw_response = res['candidates'][0]['content']['parts'][0]['text']
         
-        # Очищення результату
-        clean_json = raw_response.strip().encode('utf-8').decode('utf-8-sig')
-        # Заміна лапок всередині тексту, щоб не ламати JSON
+        # ТЕХНІЧНА ПРАВКА ОЧИЩЕННЯ:
+        # Видаляємо переноси рядків (\n), які ламають парсинг у деяких середовищах
+        clean_json = raw_response.replace('\n', ' ').strip()
+        # Видаляємо BOM
+        clean_json = clean_json.encode('utf-8').decode('utf-8-sig')
+        # Фікс лапок всередині значень
         clean_json = re.sub(r'(?<![:{,])"(?![:},])', "'", clean_json)
         
         data = json.loads(clean_json, strict=False)
@@ -110,7 +111,7 @@ def generate_and_post():
     
     final_post_slug = f"{c_slug}-scenariy-{scenario_num}"
 
-    # 4. Дизайн (Dark UI) - ВАШ ОРИГІНАЛЬНИЙ ШАБЛОН
+    # 4. Дизайн (Dark UI)
     html_template = f"""
     <div style='background-color: #1a1a1a !important; color: #eeeeee !important; font-family: "Inter", sans-serif; padding: 35px; border-radius: 12px; max-width: 800px; margin: 0 auto; line-height: 1.6; border: 1px solid #333;'>
         <div style='text-align: center; margin-bottom: 30px;'>
