@@ -109,7 +109,7 @@ def generate_and_post():
     db["topics"][c_slug].append(scenario_num)
     final_post_slug = f"{c_slug}-scenariy-{scenario_num}"
 
-    # 4. Дизайн (Твій оригінальний шаблон)
+    # 4. Дизайн (Оновлений Dark UI з контрастними кнопками)
     html_template = f"""
     <div style='background-color: #1a1a1a !important; color: #eeeeee !important; font-family: "Inter", sans-serif; padding: 35px; border-radius: 12px; max-width: 800px; margin: 0 auto; line-height: 1.6; border: 1px solid #333;'>
         <div style='text-align: center; margin-bottom: 30px;'>
@@ -143,14 +143,14 @@ def generate_and_post():
         </div>
 
         <div style='display: flex; gap: 10px; justify-content: center; margin: 30px 0; flex-wrap: wrap;'>
-            <button onclick='window.print()' style='background: #3498db; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;'>🖨️ Друк</button>
-            <a href='https://t.me/share/url?url=http://scenariy.pp.ua/{final_post_slug}/' target='_blank' style='text-decoration: none; background: #0088cc; color: #fff; padding: 10px 20px; border-radius: 6px; font-weight: bold;'>✈️ Telegram</a>
-            <a href='viber://forward?text=http://scenariy.pp.ua/{final_post_slug}/' style='text-decoration: none; background: #7360f2; color: #fff; padding: 10px 20px; border-radius: 6px; font-weight: bold;'>💜 Viber</a>
+            <button onclick='window.print()' style='background: #444; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px;'>🖨️ Друк</button>
+            <a href='https://t.me/share/url?url=http://scenariy.pp.ua/{final_post_slug}/' target='_blank' style='text-decoration: none; background: #0088cc; color: #fff; padding: 10px 20px; border-radius: 6px; font-weight: bold; font-size: 14px;'>✈️ Telegram</a>
+            <a href='viber://forward?text=http://scenariy.pp.ua/{final_post_slug}/' style='text-decoration: none; background: #7360f2; color: #fff; padding: 10px 20px; border-radius: 6px; font-weight: bold; font-size: 14px;'>💜 Viber</a>
         </div>
 
         <div style='display: flex; gap: 10px; justify-content: center; margin-bottom: 30px;'>
-            <a href='http://scenariy.pp.ua/7-2/' style='background: #f1c40f; color: #000; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 14px;'>✨ Створити свій</a>
-            <a href='http://scenariy.pp.ua/category/{c_slug}/' style='background: #333; color: #fff; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 14px;'>📚 Інші сценарії</a>
+            <a href='http://scenariy.pp.ua/7-2/' style='background: #f1c40f; color: #000; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 800; font-size: 14px; box-shadow: 0 4px 15px rgba(241, 196, 15, 0.2);'>✨ Створити свій</a>
+            <a href='http://scenariy.pp.ua/category/{c_slug}/' style='background: #222; color: #fff; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; border: 1px solid #444;'>📚 Інші сценарії</a>
         </div>
 
         <div style='text-align: center; border-top: 1px solid #333; padding-top: 20px; color: #555; font-size: 14px;'>
