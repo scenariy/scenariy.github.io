@@ -149,7 +149,7 @@ def generate_and_post():
         </div>
 
         <div style='display: flex; gap: 12px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap; align-items: center;'>
-         <a href='http://scenariy.pp.ua/7-2/' style='text-decoration: none; background: rgba(255,255,255,0.05); color: #fff; height: 50px; padding: 0 24px; border-radius: 10px; font-weight: bold; font-size: 15px; box-shadow: 0 4px 15px rgba(241, 196, 15, 0.3); display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 1px solid #444; min-width: 260px; box-sizing: border-box; vertical-align: middle;'>
+         <a href='http://scenariy.pp.ua/7-2/' style='text-decoration: none; background: rgba(255,255,255,0.05); color: #f1c40f; height: 50px; padding: 0 24px; border-radius: 10px; font-weight: bold; font-size: 15px; box-shadow: 0 4px 15px rgba(241, 196, 15, 0.3); display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 1px solid #444; min-width: 260px; box-sizing: border-box; vertical-align: middle;'>
          <span style='line-height: 1;'>✨</span> <span>Створити власний сценарій</span>
         </a>
 
