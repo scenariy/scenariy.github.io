@@ -142,17 +142,17 @@ def generate_and_post():
             <div style='color: #ccc;'>{data['main_script']}</div>
         </div>
 
-        <div style='display: flex; gap: 10px; justify-content: center; margin: 30px 0; flex-wrap: wrap;'>
-            <button onclick='window.print()' style='background: #333; color: #fff; border: 1px solid #444; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px;'>🖨️ Друк</button>
+                <div style='display: flex; gap: 10px; justify-content: center; margin: 30px 0; flex-wrap: wrap;'>
+            <button onclick='window.print()' style='background: #333; color: #fff; border: 1px solid #444; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s;'>🖨️ Друк</button>
             <a href='https://t.me/share/url?url=http://scenariy.pp.ua/{final_post_slug}/' target='_blank' style='text-decoration: none; background: #0088cc; color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 14px;'>✈️ Telegram</a>
             <a href='viber://forward?text=http://scenariy.pp.ua/{final_post_slug}/' style='text-decoration: none; background: #7360f2; color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 14px;'>💜 Viber</a>
         </div>
 
-                <div style='display: flex; gap: 12px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap;'>
-            <a href='http://scenariy.pp.ua/7-2/' style='text-decoration: none; background: #f1c40f; color: #ffffff !important; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 15px; box-shadow: 0 4px 15px rgba(241, 196, 15, 0.2); display: flex; align-items: center; gap: 8px;'>
-                ✨ Створити власний сценарій
+        <div style='display: flex; gap: 12px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap;'>
+            <a href='http://scenariy.pp.ua/7-2/' style='text-decoration: none; background: linear-gradient(135s, #f1c40f 0%, #d4ac0d 100%); color: #000; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 15px; box-shadow: 0 4px 15px rgba(241, 196, 15, 0.3); display: flex; align-items: center; gap: 8px;'>
+                <span>✨</span> Створити власний сценарій
             </a>
-            <a href='http://scenariy.pp.ua/category/{c_slug}/' style='text-decoration: none; background: transparent; color: #f1c40f; padding: 12px 24px; border-radius: 10px; font-weight: bold; font-size: 15px; border: 2px solid #f1c40f;'>
+            <a href='http://scenariy.pp.ua/category/{c_slug}/' style='text-decoration: none; background: rgba(255,255,255,0.05); color: #bbb; padding: 12px 24px; border-radius: 10px; font-weight: bold; font-size: 15px; border: 1px solid #444;'>
                 📚 Всі сценарії категорії
             </a>
         </div>
