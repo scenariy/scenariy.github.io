@@ -148,14 +148,15 @@ def generate_and_post():
             <a href='viber://forward?text=http://scenariy.pp.ua/{final_post_slug}/' style='text-decoration: none; background: #7360f2; color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 14px;'>💜 Viber</a>
         </div>
 
-        <div style='display: flex; gap: 12px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap;'>
-            <a href='http://scenariy.pp.ua/7-2/' style='text-decoration: none; background: #f1c40f; color: #000; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 15px; box-shadow: 0 4px 15px rgba(241, 196, 15, 0.2);'>
+                <div style='display: flex; gap: 12px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap;'>
+            <a href='http://scenariy.pp.ua/7-2/' style='text-decoration: none; background: #f1c40f; color: #ffffff !important; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 15px; box-shadow: 0 4px 15px rgba(241, 196, 15, 0.2); display: flex; align-items: center; gap: 8px;'>
                 ✨ Створити власний сценарій
             </a>
-            <a href='http://scenariy.pp.ua/category/{c_slug}/' style='text-decoration: none; background: rgba(255,255,255,0.05); color: #bbb; padding: 12px 24px; border-radius: 10px; font-weight: bold; font-size: 15px; border: 1px solid #444;'>
+            <a href='http://scenariy.pp.ua/category/{c_slug}/' style='text-decoration: none; background: transparent; color: #f1c40f; padding: 12px 24px; border-radius: 10px; font-weight: bold; font-size: 15px; border: 2px solid #f1c40f;'>
                 📚 Всі сценарії категорії
             </a>
         </div>
+
     </div>
     """
 
