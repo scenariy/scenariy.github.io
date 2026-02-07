@@ -143,18 +143,18 @@ def generate_and_post():
         </div>
 
         <div style='display: flex; gap: 10px; justify-content: center; margin: 30px 0; flex-wrap: wrap;'>
-            <button onclick='window.print()' style='background: #444; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px;'>🖨️ Друк</button>
-            <a href='https://t.me/share/url?url=http://scenariy.pp.ua/{final_post_slug}/' target='_blank' style='text-decoration: none; background: #0088cc; color: #fff; padding: 10px 20px; border-radius: 6px; font-weight: bold; font-size: 14px;'>✈️ Telegram</a>
-            <a href='viber://forward?text=http://scenariy.pp.ua/{final_post_slug}/' style='text-decoration: none; background: #7360f2; color: #fff; padding: 10px 20px; border-radius: 6px; font-weight: bold; font-size: 14px;'>💜 Viber</a>
+            <button onclick='window.print()' style='background: #333; color: #fff; border: 1px solid #444; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s;'>🖨️ Друк</button>
+            <a href='https://t.me/share/url?url=http://scenariy.pp.ua/{final_post_slug}/' target='_blank' style='text-decoration: none; background: #0088cc; color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 14px;'>✈️ Telegram</a>
+            <a href='viber://forward?text=http://scenariy.pp.ua/{final_post_slug}/' style='text-decoration: none; background: #7360f2; color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 14px;'>💜 Viber</a>
         </div>
 
-        <div style='display: flex; gap: 10px; justify-content: center; margin-bottom: 30px;'>
-            <a href='http://scenariy.pp.ua/7-2/' style='background: #f1c40f; color: #000; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 800; font-size: 14px; box-shadow: 0 4px 15px rgba(241, 196, 15, 0.2);'>✨ Створити свій</a>
-            <a href='http://scenariy.pp.ua/category/{c_slug}/' style='background: #222; color: #fff; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; border: 1px solid #444;'>📚 Інші сценарії</a>
-        </div>
-
-        <div style='text-align: center; border-top: 1px solid #333; padding-top: 20px; color: #555; font-size: 14px;'>
-            {data['conclusion']}
+        <div style='display: flex; gap: 12px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap;'>
+            <a href='http://scenariy.pp.ua/7-2/' style='text-decoration: none; background: linear-gradient(135s, #f1c40f 0%, #d4ac0d 100%); color: #000; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 15px; box-shadow: 0 4px 15px rgba(241, 196, 15, 0.3); display: flex; align-items: center; gap: 8px;'>
+                <span>✨</span> Створити власний сценарій
+            </a>
+            <a href='http://scenariy.pp.ua/category/{c_slug}/' style='text-decoration: none; background: rgba(255,255,255,0.05); color: #bbb; padding: 12px 24px; border-radius: 10px; font-weight: bold; font-size: 15px; border: 1px solid #444;'>
+                📚 Всі сценарії категорії
+            </a>
         </div>
     </div>
     """
