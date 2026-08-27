@@ -375,30 +375,51 @@
     </div>
 
     <script>
-        // Завантаження останнього згенерованого сценарію при відкритті сторінки
-        async function loadLatestScenario() {
+        // Динамічне завантаження карток із database.json
+        async function loadScenariosFromDB() {
             try {
-                const response = await fetch('latest_scenario.json?t=' + new Date().getTime());
+                const response = await fetch('database.json?t=' + new Date().getTime());
                 if (!response.ok) return;
+    
+                const db = await response.json();
+                const grid = document.getElementById('scenariosGrid');
                 
-                const data = await response.json();
-                if (data && data.content) {
-                    const resultBox = document.getElementById('resultBox');
-                    resultBox.style.display = 'block';
-                    resultBox.innerHTML = `<h3>Останній згенерований сценарій (${data.topic}):</h3><br>` + 
-                        data.content.replace(/\n/g, '<br>');
+                // Очищаємо мокові статичні картки
+                grid.innerHTML = '';
+    
+                // Проходимо по всіх topics та scenarios
+                for (const categoryKey in db.topics) {
+                    const category = db.topics[categoryKey];
+                    if (!category.scenarios) continue;
+    
+                    category.scenarios.forEach(item => {
+                        const card = document.createElement('div');
+                        card.className = 'scenario-card';
+                        card.setAttribute('data-title', `${item.title} ${category.name} ${item.audience}`.toLowerCase());
+    
+                        card.innerHTML = `
+                            <div>
+                                <div class="card-tag">${category.name}</div>
+                                <h3 class="card-title">${item.title}</h3>
+                                <p class="card-desc">Аудиторія: ${item.audience}</p>
+                            </div>
+                            <a href="${item.file}" class="btn-view" style="text-align: center; text-decoration: none;">Переглянути</a>
+                        `;
+                        grid.appendChild(card);
+                    });
                 }
             } catch (e) {
-                console.log("Сценаріїв поки немає або помилка зчитування", e);
+                console.error("Помилка завантаження каталогу:", e);
             }
         }
-
-    // Автоматично викликаємо при завантаженні сторінки
-    window.addEventListener('DOMContentLoaded', loadLatestScenario);
+    
+        // Запускаємо завантаження карток після завантаження сторінки
+        window.addEventListener('DOMContentLoaded', loadScenariosFromDB);
+    
         function filterScenarios() {
             const query = document.getElementById('searchInput').value.toLowerCase();
             const cards = document.querySelectorAll('.scenario-card');
-
+    
             cards.forEach(card => {
                 const title = card.getAttribute('data-title').toLowerCase();
                 const text = card.innerText.toLowerCase();
@@ -409,33 +430,22 @@
                 }
             });
         }
-
-        async function generateScenario() {
+    
+        function generateScenario() {
             const topic = document.getElementById('topic').value;
             const audience = document.getElementById('audience').value;
             const details = document.getElementById('details').value;
-        
+    
             if (!topic) {
                 alert("Будь ласка, вкажіть тему!");
                 return;
             }
-        
-            const btn = document.querySelector('.btn-generate');
-            btn.disabled = true;
-            btn.innerText = "Надсилаємо запит...";
-        
-            const bridgeUrl = "https://script.google.com/macros/s/AKfycbw7-Z7PWlX7RJBGeizJZpd757XtUBviIPmrfCzgFZWNXsNFkkF3pbL69nkSkhTN665-qQ/exec";
-            const query = `?topic=${encodeURIComponent(topic)}&audience=${encodeURIComponent(audience)}&details=${encodeURIComponent(details)}`;
-        
-            try {
-                await fetch(bridgeUrl + query, { mode: 'no-cors' });
-                alert("Запит прийнято! Сценарій буде згенеровано та додано на сайт протягом кількох хвилин.");
-            } catch (e) {
-                alert("Помилка відправки. Спробуйте пізніше.");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Згенерувати сценарій";
-            }
+    
+            const issueTitle = encodeURIComponent(`Generate: ${topic}`);
+            const issueBody = encodeURIComponent(`**Тема:** ${topic}\n**Аудиторія:** ${audience}\n**Деталі:** ${details}`);
+    
+            const repoUrl = "https://github.com/scenariy/scenariy.github.io/issues/new";
+            window.open(`${repoUrl}?title=${issueTitle}&body=${issueBody}`, '_blank');
         }
     </script>
 </body>
