@@ -1,0 +1,44 @@
+name: Generate Scenario via Gemini API
+
+on:
+  repository_dispatch:
+    types: [generate-scenario]
+  workflow_dispatch:
+    inputs:
+      topic:
+        description: 'Тема сценарію'
+        required: true
+      audience:
+        description: 'Аудиторія'
+        required: true
+      details:
+        description: 'Деталі'
+        required: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Run generation script
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TOPIC: ${{ github.event.inputs.topic || github.event.client_payload.topic }}
+          AUDIENCE: ${{ github.event.inputs.audience || github.event.client_payload.audience }}
+          DETAILS: ${{ github.event.inputs.details || github.event.client_payload.details }}
+        run: python generate.py
+
+      - name: Commit and Push generated content
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add latest_scenario.json
+          git commit -m "Auto-generated new scenario for: ${{ github.event.inputs.topic || github.event.client_payload.topic }}" || exit 0
+          git push
