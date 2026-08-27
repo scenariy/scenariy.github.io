@@ -397,8 +397,8 @@
             const resultBox = document.getElementById('resultBox');
 
             resultBox.style.display = 'block';
-            resultBox.innerHTML = `<strong>Generating...</strong>\nСтворюється сценарій на тему "${topic}" для аудиторії "${audience}"...`;
-
+            resultBox.innerHTML = '⏳ <strong>Запит відправлено в GitHub Actions...</strong><br>Зараз запуститься генератор, зачекайте 15-30 секунд.';
+            
             setTimeout(() => {
                 resultBox.innerHTML = `🎬 <strong>Згенерований сценарій: ${topic}</strong>\n\n` +
                     `📌 <strong>Аудиторія:</strong> ${audience}\n` +
