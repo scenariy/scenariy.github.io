@@ -37,7 +37,7 @@ prompt = f"""
 """
 
 # Використовуємо актуальну модель gemini-2.0-flash
-url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={api_key}"
 headers = {"Content-Type": "application/json"}
 data = json.dumps({
     "contents": [{"parts": [{"text": prompt}]}]
