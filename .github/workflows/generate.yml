@@ -4,12 +4,16 @@ on:
   issues:
     types: [opened]
 
+permissions:
+  contents: write
+  issues: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -20,11 +24,18 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ISSUE_BODY: ${{ github.event.issue.body }}
+        run: python generate.py
+
+      - name: Commit and push changes
         run: |
-          python generate.py
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add latest_scenario.json
+          git commit -m "Update: generated new scenario from issue" || exit 0
+          git push
 
       - name: Close Issue automatically
         uses: peter-evans/close-issue@v2
         with:
           issue-number: ${{ github.event.issue.number }}
-          comment: "Сценарій згенеровано та додано на сайт!"
+          comment: "Сценарій згенеровано та збережено у latest_scenario.json!"
