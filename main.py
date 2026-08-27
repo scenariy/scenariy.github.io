@@ -28,7 +28,7 @@ def generate_and_save():
 
             existing_slugs = list(db["topics"].keys())
             
-            gen_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}"
+            gen_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={gemini_key}"
             
             prompt = f"""
             Ти - SEO-експерт та архітектор контенту. 
