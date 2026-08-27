@@ -15,7 +15,7 @@
             <p class="subtitle">Автоматична генерація унікальних сценаріїв для будь-яких подій</p>
         </header>
 
-        <!-- Картка форми генерації -->
+        <!-- Форма генерації -->
         <main class="scenario-card">
             <h2>⚡ Створити власний сценарій</h2>
             
@@ -41,10 +41,11 @@
                 <textarea id="details" placeholder="напр., тривалість 1 година, веселі конкурси, тематика Піратів..."></textarea>
             </div>
 
-            <button onclick="generateScenario()" class="btn-generate">🪄 Згенерувати сценарій</button>
+            <button id="submitBtn" onclick="generateScenario()" class="btn-generate">🪄 Згенерувати сценарій</button>
+            <p id="statusMsg" style="margin-top: 10px; font-size: 0.9rem; text-align: center; color: var(--primary-yellow);"></p>
         </main>
 
-        <!-- Секція каталогу сценаріїв -->
+        <!-- Секція каталогу -->
         <section class="scenarios-section">
             <div class="section-header">
                 <h2>📚 Готові сценарії</h2>
@@ -52,15 +53,7 @@
             </div>
 
             <div id="scenariosGrid" class="scenarios-grid">
-                <!-- Заглушка на випадок, якщо база порожня -->
-                <div class="scenario-card-item">
-                    <div class="card-content">
-                        <span class="card-tag">Вечірка</span>
-                        <h3 class="card-title">Веселий День Народження</h3>
-                        <p class="card-desc">Аудиторія: Дорослі</p>
-                    </div>
-                    <a href="#" class="btn-view">Переглянути</a>
-                </div>
+                <!-- Сюди підвантажуються картки з database.json -->
             </div>
         </section>
 
@@ -72,7 +65,10 @@
     </div>
 
     <script>
-        // Динамічне завантаження карток із database.json
+        // 🔗 ВСТАВ СЮДИ СВОЄ ПОСИЛАННЯ НА GOOGLE APPS SCRIPT WEB APP
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/ХХХХХХХХХХХХХХХХХХХХХ/exec";
+
+        // Завантаження карток з database.json
         async function loadScenariosFromDB() {
             const grid = document.getElementById('scenariosGrid');
             if (!grid) return;
@@ -99,7 +95,7 @@
 
                 if (allScenarios.length === 0) return;
 
-                grid.innerHTML = ''; // Очищаємо мокові дані
+                grid.innerHTML = ''; 
 
                 allScenarios.forEach(item => {
                     const card = document.createElement('div');
@@ -118,7 +114,7 @@
                 });
 
             } catch (e) {
-                console.error("Помилка підвантаження database.json:", e);
+                console.error("Помилка завантаження database.json:", e);
             }
         }
 
@@ -139,22 +135,49 @@
             });
         }
 
-        // Генерація через GitHub Issue
-        function generateScenario() {
+        // 🚀 НАЙВАЖЛИВІШЕ: Відправка на Google Apps Script без авторизацій
+        async function generateScenario() {
             const topic = document.getElementById('topic').value.trim();
             const audience = document.getElementById('audience').value;
             const details = document.getElementById('details').value.trim();
-        
+            const btn = document.getElementById('submitBtn');
+            const statusMsg = document.getElementById('statusMsg');
+
             if (!topic) {
                 alert("Будь ласка, вкажіть тему!");
                 return;
             }
-        
-            const issueTitle = encodeURIComponent(`Generate: ${topic}`);
-            const issueBody = encodeURIComponent(`**Тема:** ${topic}\n**Аудиторія:** ${audience}\n**Деталі:** ${details}`);
-        
-            const repoUrl = "https://github.com/scenariy/scenariy.github.io/issues/new";
-            window.open(`${repoUrl}?title=${issueTitle}&body=${issueBody}`, '_blank');
+
+            btn.disabled = true;
+            btn.style.opacity = "0.6";
+            statusMsg.innerText = "⏳ Запит відправлено! Генерація займає ~1 хвилину...";
+
+            try {
+                // Відправляємо фоновий POST-запит на міст Google Apps Script
+                await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Потрібно для Google Apps Script
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        topic: topic,
+                        audience: audience,
+                        wishes: details
+                    })
+                });
+
+                statusMsg.innerText = "✅ Сценарій взято в обробку! Сторінка оновиться через кілька хвилин.";
+                document.getElementById('topic').value = '';
+                document.getElementById('details').value = '';
+
+            } catch (error) {
+                console.error("Помилка відправки:", error);
+                statusMsg.innerText = "❌ Помилка відправки запиту. Спробуйте ще раз.";
+            } finally {
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.style.opacity = "1";
+                }, 5000);
+            }
         }
     </script>
 </body>
