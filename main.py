@@ -1,20 +1,15 @@
 import os
 import requests
 import json
-import re
 import time
 
-# Налаштування
 topic = os.getenv("TOPIC")
 audience = os.getenv("AUDIENCE")
 wishes = os.getenv("WISHES", "")
 gemini_key = os.getenv("GEMINI_API_KEY")
-wp_password = os.getenv("WP_PASSWORD")
-wp_user = os.getenv("WP_USER")
-base_url = "http://scenariy.pp.ua/index.php?rest_route="
 
-def generate_and_post():
-    max_retries = 3  # Кількість спроб
+def generate_and_save():
+    max_retries = 3
     attempt = 0
     
     while attempt < max_retries:
@@ -22,56 +17,44 @@ def generate_and_post():
         print(f"🔄 Спроба {attempt} із {max_retries}...")
         
         try:
-            # 1. Завантаження бази даних (всередині циклу, щоб мати актуальні дані)
             db = {"topics": {}}
             if os.path.exists("database.json"):
                 with open("database.json", "r", encoding="utf-8") as f:
                     try:
                         db = json.load(f)
                         if "topics" not in db: db = {"topics": {}}
-                    except:
+                    except Exception:
                         db = {"topics": {}}
 
             existing_slugs = list(db["topics"].keys())
             
-            # 2. Запит до Gemini
             gen_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_key}"
             
-            # (Тут ваш prompt залишається без змін)
             prompt = f"""
             Ти - SEO-експерт та архітектор контенту. 
             Твоє завдання: класифікувати захід "{topic}" та написати сценарій для "{audience}". Враховуючи вік та можливості аудиторії, а також масштаби.
         
-            ОСОБЛИВІ ПОБАЖАННЯ КОРИСТУВАЧА (врахуй їх обов'язково):
+            ОСОБЛИВІ ПОБАЖАННЯ КОРИСТУВАЧА:
             "{wishes}"
             
             КРОК 1: АНАЛІЗ КАТЕГОРІЇ
             - Перевір існуючі категорії: {existing_slugs}.
             - Якщо тема "{topic}" схожа на існуючу, ОБОВ'ЯЗКОВО використай її slug.
-            - Якщо тема НОВА: не перекладай назву дослівно. Знайди офіційну міжнародну назву цього свята англійською (наприклад, для "8 березня" це "international-womens-day", для "День вчителя" - "teachers-day"). Використовуй тільки загальноприйняті, найпопулярніші SEO-friendly назви.
+            - Якщо тема НОВА: не перекладай назву дослівно. Знайди офіційну міжнародну назву англійською (наприклад "international-womens-day").
         
             КРОК 2: ПРАВИЛА ГЕНЕРАЦІЇ КОНТЕНТУ
-            1. МУЗИКА: Щоразу, коли є музична пауза чи фон, пиши "Мелодія: [назва]". Одразу під цим додавай блок <details><summary>🎵 Підбірка музики</summary><ul>...</ul></details>. 
-               - Пріоритет: сучасна українська музика або світова класика (напр. Jingle Bells). Ніяких російських пісень чи адаптацій.
-            2. ВІРШІ ТА ПІСНІ: Якщо діти мають читати вірш або співати, не обмежуйся фразою "Діти співають". Додавай повний текст у блоці <details><summary>📜 Текст вірша/пісні</summary>...</details>.
-               - Використовуй відомі існуючі тексти. Якщо пишеш сам — забезпеч ідеальну риму та ритм українською мовою. Ніяких російських віршів чи адаптацій.
-            3. ІНТЕРАКТИВ: Додавай детальні описи ігор або конкурсів. Наприклад Конкурс «Найкраща господиня» <details><summary>🥇 Повний опис конкурсу</summary>...</details>
-        
-            Напиши сценарій у форматі HTML. 
-            
-            ВАЖЛИВО ДЛЯ JSON:
-            - Увесь HTML-код ПОВИНЕН використовувати тільки одинарні лапки для атрибутів: <div style='color:red'>.
-            - У тексті ЗАБОРОНЕНО використовувати подвійні лапки ("). Замість них використовуй одинарні (') або лапки-ялинки « » (лапки-ялинки).
-            - Не використовуй символи перенесення рядка всередині значень JSON, використовуй теги <p> або <br>.
+            1. МУЗИКА: "Мелодія: [назва]" + додавай блок <details><summary>🎵 Підбірка музики</summary><ul>...</ul></details>. Світова класика чи сучасна українська музика.
+            2. ВІРШІ ТА ПІСНІ: Повний текст у блоці <details><summary>📜 Текст вірша/пісні</summary>...</details>.
+            3. ІНТЕРАКТИВ: Повний опис у блоці <details><summary>🥇 Повний опис конкурсу</summary>...</details>.
         
             Відповідь СУВОРО JSON:
             {{
               "category_name": "Офіційна повна назва свята українською",
               "category_slug": "international-standard-slug",
               "post_title": "Красива назва сценарію",
-              "seo_description": "Короткий опис сценарію (2-3 речення), про що він та які ключові особливості",
-              "intro": "Вступ (без заголовка)",
-              "roles": "Список li",
+              "seo_description": "Короткий опис сценарію (2-3 речення)",
+              "intro": "Вступ",
+              "roles": "Список li без ul",
               "main_script": "Хід подій HTML (p, li, h4)",
               "conclusion": "Фінал"
             }}
@@ -86,116 +69,104 @@ def generate_and_post():
             }
             
             res = requests.post(gen_url, json=payload).json()
-            
             if 'candidates' not in res:
                 raise ValueError(f"API Gemini повернув помилку: {res}")
 
             raw_response = res['candidates'][0]['content']['parts'][0]['text']
-            
-            # Надійне очищення JSON
             start_index = raw_response.find('{')
             end_index = raw_response.rfind('}') + 1
-            if start_index == -1:
-                raise ValueError("JSON не знайдено у відповіді ШІ")
-                
             clean_json = raw_response[start_index:end_index]
             data = json.loads(clean_json, strict=False)
 
-            # Якщо ШІ все ж повернув список, беремо перший елемент
             if isinstance(data, list):
                 data = data[0]
 
-            # Перевірка наявності ключа, на якому падала помилка
-            if "category_slug" not in data:
-                raise KeyError("У відповіді відсутній 'category_slug'")
-
-            # 3. Логіка оновлення бази та формування HTML
             c_slug = data["category_slug"]
             if c_slug not in db["topics"]:
-                db["topics"][c_slug] = []
+                db["topics"][c_slug] = {
+                    "name": data["category_name"],
+                    "scenarios": []
+                }
             
-            scenario_num = len(db["topics"][c_slug]) + 1
-            db["topics"][c_slug].append(scenario_num)
-            final_post_slug = f"{c_slug}-scenariy-{scenario_num}"
+            scenario_num = len(db["topics"][c_slug]["scenarios"]) + 1
+            final_slug = f"{c_slug}-scenariy-{scenario_num}"
+            file_name = f"{final_slug}.html"
 
-            # (Тут ваш html_template без змін)
-            html_template = f"""
-            <div style='background-color: #1a1a1a !important; color: #eeeeee !important; font-family: "Inter", sans-serif; padding: 35px; border-radius: 12px; max-width: 800px; margin: 0 auto; line-height: 1.6; border: 1px solid #333;'>
-                <div style='text-align: center; margin-bottom: 30px;'>
-                    <div style='display: inline-block; background-color: #f1c40f !important; color: #000000 !important; padding: 4px 14px; border-radius: 4px; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;'>
-                        {data['category_name']}
-                    </div>
-                    <p style='color: #666; font-size: 13px; margin-top: 10px;'>Для аудиторії: {audience}</p>
-                </div>
-        
-                <div style='margin-bottom: 25px;'>
-                    <details style='background: #1f1f1f; border: 1px dashed #444; border-radius: 8px; cursor: pointer;'>
-                        <summary style='padding: 10px; color: #f1c40f; font-size: 14px; font-weight: bold;'>📝 Короткий опис сценарію (SEO)</summary>
-                        <div style='padding: 10px; color: #aaa; font-size: 14px; border-top: 1px solid #333;'>
-                            {data.get('seo_description', 'Сценарій підготовлено за індивідуальним запитом.')}
-                        </div>
-                    </details>
-                </div>
-        
-                <div style='background: #252525; padding: 20px; border-radius: 8px; border-left: 4px solid #f1c40f; margin-bottom: 30px;'>
-                    <p style='margin: 0; color: #ddd; font-style: italic;'>{data['intro']}</p>
-                </div>
-                
-                <div style='margin-bottom: 35px;'>
-                    <h3 style='color: #f1c40f; font-size: 19px; border-bottom: 1px solid #333; padding-bottom: 8px;'>🎭 Дійові особи</h3>
-                    <ul style='padding-left: 20px; color: #bbb;'>{data['roles']}</ul>
-                </div>
-        
-                <div style='margin-bottom: 35px;'>
-                    <h3 style='color: #3498db; font-size: 19px; border-bottom: 1px solid #333; padding-bottom: 8px;'>📜 Сценарій заходу</h3>
-                    <div style='color: #ccc;'>{data['main_script']}</div>
-                </div>
-        
-                        <div style='display: flex; gap: 10px; justify-content: center; margin: 30px 0; flex-wrap: wrap;'>
-                    <button onclick='window.print()' style='background: #333; color: #fff; border: 1px solid #444; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s;'>🖨️ Друк</button>
-                    <a href='https://t.me/share/url?url=http://scenariy.pp.ua/{final_post_slug}/' target='_blank' style='text-decoration: none; background: #0088cc; color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 14px;'>✈️ Telegram</a>
-                    <a href='viber://forward?text=http://scenariy.pp.ua/{final_post_slug}/' style='text-decoration: none; background: #7360f2; color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 14px;'>💜 Viber</a>
-                </div>
-        
-                <div style='display: flex; gap: 12px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap; align-items: center;'>
-                 <a href='http://scenariy.pp.ua/generate/' style='text-decoration: none; background: rgba(255,255,255,0.05); color: #f1c40f; height: 50px; padding: 0 24px; border-radius: 10px; font-weight: bold; font-size: 15px; box-shadow: 0 4px 15px rgba(241, 196, 15, 0.3); display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 1px solid #444; min-width: 260px; box-sizing: border-box; vertical-align: middle;'>
-                 <span style='line-height: 1;'>✨</span> <span>Створити власний сценарій</span>
-                </a>
-        
-                <a href='http://scenariy.pp.ua/category/{c_slug}/' style='text-decoration: none; background: rgba(255,255,255,0.05); color: #bbb; height: 50px; padding: 0 24px; border-radius: 10px; font-weight: bold; font-size: 15px; border: 1px solid #444; display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-width: 260px; box-sizing: border-box; vertical-align: middle;'>
-                    <span style='line-height: 1;'>📚</span> <span>Всі сценарії категорії</span>
-                </a>
-            </div>
-        
-        
-            </div>
-            """
+            page_html = f"""<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{data['post_title']} — Сценарій</title>
+    <meta name="description" content="{data.get('seo_description', '')}">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <a href="/" class="back-link">← На головну</a>
+            <div class="badge">{data['category_name']}</div>
+            <h1>{data['post_title']}</h1>
+            <p class="subtitle">Для аудиторії: {audience}</p>
+        </header>
 
-            # 4. Публікація в WordPress
-            post_data = {
+        <main class="scenario-card">
+            <details class="seo-box">
+                <summary>📝 Короткий опис сценарію</summary>
+                <p>{data.get('seo_description', 'Сценарій підготовлено за індивідуальним запитом.')}</p>
+            </details>
+
+            <div class="intro-box">
+                <p><em>{data['intro']}</em></p>
+            </div>
+            
+            <section class="section">
+                <h3>🎭 Дійові особи</h3>
+                <ul class="roles-list">{data['roles']}</ul>
+            </section>
+
+            <section class="section">
+                <h3>📜 Сценарій заходу</h3>
+                <div class="script-body">{data['main_script']}</div>
+            </section>
+
+            <div class="action-buttons">
+                <button onclick="window.print()" class="btn btn-secondary">🖨️ Друк</button>
+                <a href="https://t.me/share/url?url=https://scenariy.github.io/{final_slug}" target="_blank" class="btn btn-telegram">✈️ Telegram</a>
+                <a href="viber://forward?text=https://scenariy.github.io/{final_slug}" class="btn btn-viber">💜 Viber</a>
+            </div>
+
+            <div class="nav-buttons">
+                <a href="/" class="btn btn-primary">✨ Створити власний сценарій</a>
+            </div>
+        </main>
+    </div>
+</body>
+</html>"""
+
+            with open(file_name, "w", encoding="utf-8") as f:
+                f.write(page_html)
+
+            db["topics"][c_slug]["scenarios"].append({
+                "slug": final_slug,
                 "title": data["post_title"],
-                "content": html_template,
-                "slug": final_post_slug,
-                "status": "publish"
-            }
+                "audience": audience,
+                "file": file_name
+            })
 
-            auth = (wp_user, wp_password)
-            wp_res = requests.post(f"{base_url}/wp/v2/posts", auth=auth, json=post_data)
+            with open("database.json", "w", encoding="utf-8") as f:
+                json.dump(db, f, ensure_ascii=False, indent=2)
 
-            if wp_res.status_code == 201:
-                with open("database.json", "w", encoding="utf-8") as f:
-                    json.dump(db, f, ensure_ascii=False, indent=2)
-                print(f"✅ Успіх на спробі {attempt}! Посилання: http://scenariy.pp.ua/{final_post_slug}/")
-                return  # ВИХОДИМО З ЦИКЛУ ТА ФУНКЦІЇ ПРИ УСПІХУ
-            else:
-                raise Exception(f"Помилка WP: {wp_res.text}")
+            print(f"✅ Успішно створено файл {file_name}")
+            return
 
         except Exception as e:
             print(f"⚠️ Спроба {attempt} не вдалася: {e}")
             if attempt < max_retries:
-                time.sleep(2)  # Невелика пауза перед повтором
+                time.sleep(2)
             else:
-                print("❌ Всі спроби вичерпано. Операція скасована.")
+                print("❌ Помилка генерації.")
 
 if __name__ == "__main__":
-    generate_and_post()
+    generate_and_save()
