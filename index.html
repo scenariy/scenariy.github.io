@@ -9,19 +9,22 @@
 </head>
 <body>
     <div class="container">
+        <!-- Шапка -->
         <header class="header">
             <h1 class="logo">SCENARIY</h1>
             <p class="subtitle">Автоматична генерація унікальних сценаріїв для будь-яких подій</p>
         </header>
 
-        <!-- Форма генерації -->
-        <main class="form-card">
+        <!-- Картка форми генерації -->
+        <main class="scenario-card">
             <h2>⚡ Створити власний сценарій</h2>
+            
             <div class="form-grid">
                 <div class="form-group">
                     <label for="topic">Тема / Свято</label>
                     <input type="text" id="topic" placeholder="напр., День народження, Корпоратив">
                 </div>
+                
                 <div class="form-group">
                     <label for="audience">Аудиторія / Вік</label>
                     <select id="audience">
@@ -32,14 +35,16 @@
                     </select>
                 </div>
             </div>
+
             <div class="form-group">
                 <label for="details">Побажання та деталі (необов'язково)</label>
                 <textarea id="details" placeholder="напр., тривалість 1 година, веселі конкурси, тематика Піратів..."></textarea>
             </div>
+
             <button onclick="generateScenario()" class="btn-generate">🪄 Згенерувати сценарій</button>
         </main>
 
-        <!-- Секція "Готові сценарії" -->
+        <!-- Секція каталогу сценаріїв -->
         <section class="scenarios-section">
             <div class="section-header">
                 <h2>📚 Готові сценарії</h2>
@@ -47,18 +52,19 @@
             </div>
 
             <div id="scenariosGrid" class="scenarios-grid">
-                <!-- Заглушки за замовчуванням (не зникнуть, якщо database.json ще порожній або недоступний) -->
-                <div class="scenario-card" data-title="веселий день народження вечірка дорослі">
+                <!-- Заглушка на випадок, якщо база порожня -->
+                <div class="scenario-card-item">
                     <div class="card-content">
                         <span class="card-tag">Вечірка</span>
                         <h3 class="card-title">Веселий День Народження</h3>
-                        <p class="card-desc">Універсальна програма на 2 години з конкурсами та інтерактивами.</p>
+                        <p class="card-desc">Аудиторія: Дорослі</p>
                     </div>
                     <a href="#" class="btn-view">Переглянути</a>
                 </div>
             </div>
         </section>
 
+        <!-- Футер -->
         <footer class="footer">
             <p>Знайшли щось цікаве?</p>
             <a href="https://buymeacoffee.com" target="_blank" class="btn-donate">☕ Підтримайте проект</a>
@@ -66,29 +72,19 @@
     </div>
 
     <script>
+        // Динамічне завантаження карток із database.json
         async function loadScenariosFromDB() {
             const grid = document.getElementById('scenariosGrid');
             if (!grid) return;
 
             try {
-                // Додаємо timestamp проти кешування GitHub Pages
                 const response = await fetch('database.json?t=' + Date.now());
-                
-                if (!response.ok) {
-                    console.warn(`database.json не знайдено (Статус: ${response.status}). Використовуються замовчувані картки.`);
-                    return;
-                }
+                if (!response.ok) return;
 
                 const db = await response.json();
-                
-                if (!db || !db.topics || Object.keys(db.topics).length === 0) {
-                    console.warn("База даних порожня. Залишаємо базові картки.");
-                    return;
-                }
+                if (!db || !db.topics || Object.keys(db.topics).length === 0) return;
 
-                // Масив для збору всіх сценаріїв
                 const allScenarios = [];
-
                 for (const categoryKey in db.topics) {
                     const category = db.topics[categoryKey];
                     if (category.scenarios && Array.isArray(category.scenarios)) {
@@ -103,12 +99,11 @@
 
                 if (allScenarios.length === 0) return;
 
-                // Очищаємо картки-заглушки тільки якщо реально є дані з JSON
-                grid.innerHTML = '';
+                grid.innerHTML = ''; // Очищаємо мокові дані
 
                 allScenarios.forEach(item => {
                     const card = document.createElement('div');
-                    card.className = 'scenario-card';
+                    card.className = 'scenario-card-item';
                     card.setAttribute('data-title', `${item.title} ${item.categoryName} ${item.audience}`.toLowerCase());
 
                     card.innerHTML = `
@@ -123,15 +118,16 @@
                 });
 
             } catch (e) {
-                console.error("Помилка завантаження/парсингу database.json:", e);
+                console.error("Помилка підвантаження database.json:", e);
             }
         }
 
         window.addEventListener('DOMContentLoaded', loadScenariosFromDB);
 
+        // Пошукова фільтрація
         function filterScenarios() {
             const query = document.getElementById('searchInput').value.toLowerCase();
-            const cards = document.querySelectorAll('.scenario-card');
+            const cards = document.querySelectorAll('.scenario-card-item');
 
             cards.forEach(card => {
                 const title = card.getAttribute('data-title') || card.innerText.toLowerCase();
@@ -143,6 +139,7 @@
             });
         }
 
+        // Генерація через GitHub Issue
         function generateScenario() {
             const topic = document.getElementById('topic').value.trim();
             const audience = document.getElementById('audience').value;
