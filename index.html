@@ -394,18 +394,19 @@
             const topic = document.getElementById('topic').value;
             const audience = document.getElementById('audience').value;
             const details = document.getElementById('details').value;
-            const resultBox = document.getElementById('resultBox');
-
-            resultBox.style.display = 'block';
-            resultBox.innerHTML = '⏳ <strong>Запит відправлено в GitHub Actions...</strong><br>Зараз запуститься генератор, зачекайте 15-30 секунд.';
-            
-            setTimeout(() => {
-                resultBox.innerHTML = `🎬 <strong>Згенерований сценарій: ${topic}</strong>\n\n` +
-                    `📌 <strong>Аудиторія:</strong> ${audience}\n` +
-                    `📝 <strong>Вступна частина:</strong> Вітання гостей та розігрів (5-10 хв).\n` +
-                    `🎯 <strong>Основна програма:</strong> Інтерактивні конкурси, призовий блок.\n` +
-                    `💡 <strong>Особливості:</strong> ${details || 'Стандартний формати події з гарним настроєм.'}`;
-            }, 1000);
+        
+            if (!topic) {
+                alert("Будь ласка, вкажіть тему!");
+                return;
+            }
+        
+            // Формуємо заголовок та тіло Issue
+            const issueTitle = encodeURIComponent(`Generate: ${topic}`);
+            const issueBody = encodeURIComponent(`**Тема:** ${topic}\n**Аудиторія:** ${audience}\n**Деталі:** ${details}`);
+        
+            // Відкриваємо сторінку створення Issue у вашому репозиторії
+            const repoUrl = "https://github.com/scenariy/scenariy.github.io/issues/new";
+            window.open(`${repoUrl}?title=${issueTitle}&body=${issueBody}`, '_blank');
         }
     </script>
 </body>
