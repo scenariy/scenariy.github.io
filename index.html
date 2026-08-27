@@ -144,15 +144,15 @@
             const topic = document.getElementById('topic').value.trim();
             const audience = document.getElementById('audience').value;
             const details = document.getElementById('details').value.trim();
-
+        
             if (!topic) {
                 alert("Будь ласка, вкажіть тему!");
                 return;
             }
-
+        
             const issueTitle = encodeURIComponent(`Generate: ${topic}`);
             const issueBody = encodeURIComponent(`**Тема:** ${topic}\n**Аудиторія:** ${audience}\n**Деталі:** ${details}`);
-
+        
             const repoUrl = "https://github.com/scenariy/scenariy.github.io/issues/new";
             window.open(`${repoUrl}?title=${issueTitle}&body=${issueBody}`, '_blank');
         }
