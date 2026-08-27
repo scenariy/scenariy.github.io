@@ -29,7 +29,7 @@ jobs:
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
           python -c "
-          import os, re
+          import os, re, main
           body = os.environ.get('ISSUE_BODY', '')
           topic = re.search(r'\*\*Тема:\*\*\s*(.+)', body)
           audience = re.search(r'\*\*Аудиторія:\*\*\s*(.+)', body)
@@ -39,7 +39,6 @@ jobs:
           os.environ['AUDIENCE'] = audience.group(1).strip() if audience else 'Дорослі'
           os.environ['WISHES'] = wishes.group(1).strip() if wishes else ''
 
-          import main
           main.generate_and_save()
           "
 
@@ -49,11 +48,11 @@ jobs:
           git config --global user.email "action@github.com"
           git pull --rebase
           git add .
-          git commit -m "Update site: generated new scenario page" || exit 0
+          git commit -m "Update site: generated new scenario page and updated database" || exit 0
           git push
 
       - name: Close Issue automatically
         uses: peter-evans/close-issue@v2
         with:
           issue-number: ${{ github.event.issue.number }}
-          comment: "Сценарій згенеровано та додано на сайт!"
+          comment: "Сценарій згенеровано, створено окрему сторінку та додано в каталог!"
