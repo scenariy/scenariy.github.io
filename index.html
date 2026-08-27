@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор Сценаріїв</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="main-header">
+            <h1 class="logo">SCENARIY</h1>
+            <p class="tagline">Автоматична генерація унікальних сценаріїв для будь-яких подій</p>
+        </header>
+
+        <section class="catalog-section">
+            <h2>📚 Готові сценарії</h2>
+            <div id="catalog" class="catalog-list">
+                <p class="loading">Завантаження каталогу...</p>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p>Знайшли щось цікаве?</p>
+            <a href="https://www.buymeacoffee.com" target="_blank" class="btn-coffee">☕ Підтримайте проект</a>
+        </footer>
+    </div>
+
+    <script>
+        async function loadCatalog() {
+            try {
+                const res = await fetch('database.json');
+                const data = await res.json();
+                const catalogContainer = document.getElementById('catalog');
+                catalogContainer.innerHTML = '';
+
+                if (!data.topics || Object.keys(data.topics).length === 0) {
+                    catalogContainer.innerHTML = '<p class="empty">Сценаріїв поки немає.</p>';
+                    return;
+                }
+
+                for (const [slug, category] of Object.entries(data.topics)) {
+                    if (!category.scenarios || category.scenarios.length === 0) continue;
+
+                    const catBox = document.createElement('div');
+                    catBox.className = 'category-group';
+                    
+                    let html = `<details open class="accordion">
+                        <summary class="accordion-header">${category.name} (${category.scenarios.length})</summary>
+                        <ul class="scenario-links">`;
+                    
+                    category.scenarios.forEach(item => {
+                        html += `<li><a href="${item.slug}">${item.title} <span>(${item.audience})</span></a></li>`;
+                    });
+
+                    html += `</ul></details>`;
+                    catBox.innerHTML = html;
+                    catalogContainer.appendChild(catBox);
+                }
+            } catch (err) {
+                console.error('Помилка завантаження бази:', err);
+            }
+        }
+        loadCatalog();
+    </script>
+</body>
+</html>
