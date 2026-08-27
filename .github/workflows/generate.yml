@@ -18,24 +18,42 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: '3.11'
 
-      - name: Run generation script
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Parse Issue Body & Run main.py
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ISSUE_BODY: ${{ github.event.issue.body }}
-        run: python generate.py
+        run: |
+          python -c "
+          import os, re
+          body = os.environ.get('ISSUE_BODY', '')
+          topic = re.search(r'\*\*Тема:\*\*\s*(.+)', body)
+          audience = re.search(r'\*\*Аудиторія:\*\*\s*(.+)', body)
+          wishes = re.search(r'\*\*Деталі:\*\*\s*(.*)', body)
+
+          os.environ['TOPIC'] = topic.group(1).strip() if topic else 'День народження'
+          os.environ['AUDIENCE'] = audience.group(1).strip() if audience else 'Дорослі'
+          os.environ['WISHES'] = wishes.group(1).strip() if wishes else ''
+
+          import main
+          main.generate_and_save()
+          "
 
       - name: Commit and push changes
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
-          git add latest_scenario.json
-          git commit -m "Update: generated new scenario from issue" || exit 0
+          git pull --rebase
+          git add .
+          git commit -m "Update site: generated new scenario page" || exit 0
           git push
 
       - name: Close Issue automatically
         uses: peter-evans/close-issue@v2
         with:
           issue-number: ${{ github.event.issue.number }}
-          comment: "Сценарій згенеровано та збережено у latest_scenario.json!"
+          comment: "Сценарій згенеровано та додано на сайт!"
