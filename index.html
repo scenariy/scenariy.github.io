@@ -390,7 +390,7 @@
             });
         }
 
-        function generateScenario() {
+        async function generateScenario() {
             const topic = document.getElementById('topic').value;
             const audience = document.getElementById('audience').value;
             const details = document.getElementById('details').value;
@@ -400,13 +400,22 @@
                 return;
             }
         
-            // Формуємо заголовок та тіло Issue
-            const issueTitle = encodeURIComponent(`Generate: ${topic}`);
-            const issueBody = encodeURIComponent(`**Тема:** ${topic}\n**Аудиторія:** ${audience}\n**Деталі:** ${details}`);
+            const btn = document.querySelector('.btn-generate');
+            btn.disabled = true;
+            btn.innerText = "Надсилаємо запит...";
         
-            // Відкриваємо сторінку створення Issue у вашому репозиторії
-            const repoUrl = "https://github.com/scenariy/scenariy.github.io/issues/new";
-            window.open(`${repoUrl}?title=${issueTitle}&body=${issueBody}`, '_blank');
+            const bridgeUrl = "ТВІЙ_ОТРИМАНИЙ_WEB_APP_URL";
+            const query = `?topic=${encodeURIComponent(topic)}&audience=${encodeURIComponent(audience)}&details=${encodeURIComponent(details)}`;
+        
+            try {
+                await fetch(bridgeUrl + query, { mode: 'no-cors' });
+                alert("Запит прийнято! Сценарій буде згенеровано та додано на сайт протягом кількох хвилин.");
+            } catch (e) {
+                alert("Помилка відправки. Спробуйте пізніше.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Згенерувати сценарій";
+            }
         }
     </script>
 </body>
