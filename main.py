@@ -2,9 +2,10 @@ import os
 import requests
 import json
 import time
+import re
 
-topic = os.getenv("TOPIC")
-audience = os.getenv("AUDIENCE")
+topic = os.getenv("TOPIC", "День народження")
+audience = os.getenv("AUDIENCE", "Дорослі")
 wishes = os.getenv("WISHES", "")
 gemini_key = os.getenv("GEMINI_API_KEY")
 
@@ -47,7 +48,7 @@ def generate_and_save():
             2. ВІРШІ ТА ПІСНІ: Повний текст у блоці <details><summary>📜 Текст вірша/пісні</summary>...</details>.
             3. ІНТЕРАКТИВ: Повний опис у блоці <details><summary>🥇 Повний опис конкурсу</summary>...</details>.
         
-            Відповідь СУВОРО JSON:
+            Відповідь СУВОРО JSON без додаткового тексту чи markdown-розмітки ```json:
             {{
               "category_name": "Офіційна повна назва свята українською",
               "category_slug": "international-standard-slug",
@@ -73,18 +74,24 @@ def generate_and_save():
                 raise ValueError(f"API Gemini повернув помилку: {res}")
 
             raw_response = res['candidates'][0]['content']['parts'][0]['text']
+            
+            # Надійний витяг JSON з відповіді
             start_index = raw_response.find('{')
             end_index = raw_response.rfind('}') + 1
             clean_json = raw_response[start_index:end_index]
+            
             data = json.loads(clean_json, strict=False)
 
             if isinstance(data, list):
                 data = data[0]
 
-            c_slug = data["category_slug"]
+            c_slug = data.get("category_slug", "general").strip().lower()
+            # Очищення slug від зайвих символів
+            c_slug = re.sub(r'[^a-z0-9-]', '', c_slug)
+            
             if c_slug not in db["topics"]:
                 db["topics"][c_slug] = {
-                    "name": data["category_name"],
+                    "name": data.get("category_name", topic),
                     "scenarios": []
                 }
             
@@ -97,17 +104,17 @@ def generate_and_save():
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{data['post_title']} — Сценарій</title>
+    <title>{data.get('post_title', topic)} — Сценарій</title>
     <meta name="description" content="{data.get('seo_description', '')}">
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="[https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap)" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <header class="header">
             <a href="/" class="back-link">← На головну</a>
-            <div class="badge">{data['category_name']}</div>
-            <h1>{data['post_title']}</h1>
+            <div class="badge">{data.get('category_name', topic)}</div>
+            <h1>{data.get('post_title', topic)}</h1>
             <p class="subtitle">Для аудиторії: {audience}</p>
         </header>
 
@@ -118,23 +125,25 @@ def generate_and_save():
             </details>
 
             <div class="intro-box">
-                <p><em>{data['intro']}</em></p>
+                <p><em>{data.get('intro', '')}</em></p>
             </div>
             
             <section class="section">
                 <h3>🎭 Дійові особи</h3>
-                <ul class="roles-list">{data['roles']}</ul>
+                <ul class="roles-list">{data.get('roles', '')}</ul>
             </section>
 
             <section class="section">
                 <h3>📜 Сценарій заходу</h3>
-                <div class="script-body">{data['main_script']}</div>
+                <div class="script-body">{data.get('main_script', '')}</div>
             </section>
+
+            {f'<section class="section"><h3>🎉 Завершення</h3><p>{data.get("conclusion")}</p></section>' if data.get("conclusion") else ''}
 
             <div class="action-buttons">
                 <button onclick="window.print()" class="btn btn-secondary">🖨️ Друк</button>
-                <a href="https://t.me/share/url?url=https://scenariy.github.io/{final_slug}" target="_blank" class="btn btn-telegram">✈️ Telegram</a>
-                <a href="viber://forward?text=https://scenariy.github.io/{final_slug}" class="btn btn-viber">💜 Viber</a>
+                <a href="[https://t.me/share/url?url=https://scenariy.github.io/](https://t.me/share/url?url=https://scenariy.github.io/){final_slug}" target="_blank" class="btn btn-telegram">✈️ Telegram</a>
+                <a href="viber://forward?text=[https://scenariy.github.io/](https://scenariy.github.io/){final_slug}" class="btn btn-viber">💜 Viber</a>
             </div>
 
             <div class="nav-buttons">
@@ -150,7 +159,7 @@ def generate_and_save():
 
             db["topics"][c_slug]["scenarios"].append({
                 "slug": final_slug,
-                "title": data["post_title"],
+                "title": data.get("post_title", topic),
                 "audience": audience,
                 "file": file_name
             })
@@ -158,7 +167,7 @@ def generate_and_save():
             with open("database.json", "w", encoding="utf-8") as f:
                 json.dump(db, f, ensure_ascii=False, indent=2)
 
-            print(f"✅ Успішно створено файл {file_name}")
+            print(f"✅ Успішно створено файл {file_name} та оновлено database.json")
             return
 
         except Exception as e:
