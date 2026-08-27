@@ -375,6 +375,26 @@
     </div>
 
     <script>
+        // Завантаження останнього згенерованого сценарію при відкритті сторінки
+        async function loadLatestScenario() {
+            try {
+                const response = await fetch('latest_scenario.json?t=' + new Date().getTime());
+                if (!response.ok) return;
+                
+                const data = await response.json();
+                if (data && data.content) {
+                    const resultBox = document.getElementById('resultBox');
+                    resultBox.style.display = 'block';
+                    resultBox.innerHTML = `<h3>Останній згенерований сценарій (${data.topic}):</h3><br>` + 
+                        data.content.replace(/\n/g, '<br>');
+                }
+            } catch (e) {
+                console.log("Сценаріїв поки немає або помилка зчитування", e);
+            }
+        }
+
+    // Автоматично викликаємо при завантаженні сторінки
+    window.addEventListener('DOMContentLoaded', loadLatestScenario);
         function filterScenarios() {
             const query = document.getElementById('searchInput').value.toLowerCase();
             const cards = document.querySelectorAll('.scenario-card');
