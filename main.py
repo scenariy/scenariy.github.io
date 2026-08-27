@@ -1,181 +1,106 @@
 import os
-import requests
 import json
-import time
 import re
 
-topic = os.getenv("TOPIC", "День народження")
-audience = os.getenv("AUDIENCE", "Дорослі")
-wishes = os.getenv("WISHES", "")
-gemini_key = os.getenv("GEMINI_API_KEY")
+def process_latest_scenario():
+    # 1. Перевіряємо наявність згенерованого сценарію
+    if not os.path.exists("latest_scenario.json"):
+        print("❌ Файл latest_scenario.json не знайдено.")
+        return
 
-def generate_and_save():
-    max_retries = 3
-    attempt = 0
-    
-    while attempt < max_retries:
-        attempt += 1
-        print(f"🔄 Спроба {attempt} із {max_retries}...")
-        
+    with open("latest_scenario.json", "r", encoding="utf-8") as f:
         try:
-            db = {"topics": {}}
-            if os.path.exists("database.json"):
-                with open("database.json", "r", encoding="utf-8") as f:
-                    try:
-                        db = json.load(f)
-                        if "topics" not in db: db = {"topics": {}}
-                    except Exception:
-                        db = {"topics": {}}
+            scenario_data = json.load(f)
+        except Exception as e:
+            print(f"❌ Помилка читання JSON: {e}")
+            return
 
-            existing_slugs = list(db["topics"].keys())
-            
-            gen_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={gemini_key}"
-            
-            prompt = f"""
-            Ти - SEO-експерт та архітектор контенту. 
-            Твоє завдання: класифікувати захід "{topic}" та написати сценарій для "{audience}". Враховуючи вік та можливості аудиторії, а також масштаби.
-        
-            ОСОБЛИВІ ПОБАЖАННЯ КОРИСТУВАЧА:
-            "{wishes}"
-            
-            КРОК 1: АНАЛІЗ КАТЕГОРІЇ
-            - Перевір існуючі категорії: {existing_slugs}.
-            - Якщо тема "{topic}" схожа на існуючу, ОБОВ'ЯЗКОВО використай її slug.
-            - Якщо тема НОВА: не перекладай назву дослівно. Знайди офіційну міжнародну назву англійською (наприклад "international-womens-day").
-        
-            КРОК 2: ПРАВИЛА ГЕНЕРАЦІЇ КОНТЕНТУ
-            1. МУЗИКА: "Мелодія: [назва]" + додавай блок <details><summary>🎵 Підбірка музики</summary><ul>...</ul></details>. Світова класика чи сучасна українська музика.
-            2. ВІРШІ ТА ПІСНІ: Повний текст у блоці <details><summary>📜 Текст вірша/пісні</summary>...</details>.
-            3. ІНТЕРАКТИВ: Повний опис у блоці <details><summary>🥇 Повний опис конкурсу</summary>...</details>.
-        
-            Відповідь СУВОРО JSON без додаткового тексту чи markdown-розмітки ```json:
-            {{
-              "category_name": "Офіційна повна назва свята українською",
-              "category_slug": "international-standard-slug",
-              "post_title": "Красива назва сценарію",
-              "seo_description": "Короткий опис сценарію (2-3 речення)",
-              "intro": "Вступ",
-              "roles": "Список li без ul",
-              "main_script": "Хід подій HTML (p, li, h4)",
-              "conclusion": "Фінал"
-            }}
-            """ 
+    topic = scenario_data.get("topic", "Загальний сценарій")
+    audience = scenario_data.get("audience", "Змішана")
+    raw_content = scenario_data.get("content", "")
 
-            payload = {
-                "contents": [{"parts": [{"text": prompt}]}],
-                "generationConfig": {
-                    "response_mime_type": "application/json",
-                    "temperature": 0.7
-                }
-            }
-            
-            res = requests.post(gen_url, json=payload).json()
-            if 'candidates' not in res:
-                raise ValueError(f"API Gemini повернув помилку: {res}")
+    # 2. Формуємо красивий slug для категорії
+    # Замінюємо пробіли та спецсимволи на дефіси
+    category_slug = re.sub(r'[^a-zA-Z0-9-]', '', topic.lower().replace(" ", "-"))
+    if not category_slug:
+        category_slug = "general"
 
-            raw_response = res['candidates'][0]['content']['parts'][0]['text']
-            
-            # Надійний витяг JSON з відповіді
-            start_index = raw_response.find('{')
-            end_index = raw_response.rfind('}') + 1
-            clean_json = raw_response[start_index:end_index]
-            
-            data = json.loads(clean_json, strict=False)
+    # 3. Зчитуємо або створюємо database.json
+    db = {"topics": {}}
+    if os.path.exists("database.json"):
+        with open("database.json", "r", encoding="utf-8") as f:
+            try:
+                db = json.load(f)
+                if "topics" not in db:
+                    db = {"topics": {}}
+            except Exception:
+                db = {"topics": {}}
 
-            if isinstance(data, list):
-                data = data[0]
+    # Створюємо категорію, якщо її ще немає
+    if category_slug not in db["topics"] or not isinstance(db["topics"][category_slug], dict):
+        db["topics"][category_slug] = {
+            "name": topic,
+            "scenarios": []
+        }
 
-            c_slug = data.get("category_slug", "general").strip().lower()
-            # Очищення slug від зайвих символів
-            c_slug = re.sub(r'[^a-z0-9-]', '', c_slug)
-            
-            if c_slug not in db["topics"]:
-                db["topics"][c_slug] = {
-                    "name": data.get("category_name", topic),
-                    "scenarios": []
-                }
-            
-            scenario_num = len(db["topics"][c_slug]["scenarios"]) + 1
-            final_slug = f"{c_slug}-scenariy-{scenario_num}"
-            file_name = f"{final_slug}.html"
+    scenarios_list = db["topics"][category_slug].get("scenarios", [])
+    scenario_num = len(scenarios_list) + 1
 
-            page_html = f"""<!DOCTYPE html>
+    # Назва файлу сторінки
+    file_slug = f"{category_slug}-scenariy-{scenario_num}"
+    file_name = f"{file_slug}.html"
+
+    # Форматуємо контент (перетворюємо переноси рядків у HTML)
+    formatted_content = raw_content.replace("\n", "<br>")
+
+    # 4. Генеруємо HTML-сторінку сценарію
+    page_html = f"""<!DOCTYPE html>
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{data.get('post_title', topic)} — Сценарій</title>
-    <meta name="description" content="{data.get('seo_description', '')}">
+    <title>{topic} — Сценарій</title>
     <link rel="stylesheet" href="style.css">
-    <link href="[https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap)" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <header class="header">
-            <a href="/" class="back-link">← На головну</a>
-            <div class="badge">{data.get('category_name', topic)}</div>
-            <h1>{data.get('post_title', topic)}</h1>
-            <p class="subtitle">Для аудиторії: {audience}</p>
+            <a href="/" class="btn-view" style="display:inline-block; width:auto; padding: 6px 16px; margin-bottom: 20px;">← На головну</a>
+            <h1 class="logo">{topic}</h1>
+            <p class="subtitle">Аудиторія: {audience}</p>
         </header>
 
         <main class="scenario-card">
-            <details class="seo-box">
-                <summary>📝 Короткий опис сценарію</summary>
-                <p>{data.get('seo_description', 'Сценарій підготовлено за індивідуальним запитом.')}</p>
-            </details>
-
-            <div class="intro-box">
-                <p><em>{data.get('intro', '')}</em></p>
-            </div>
-            
-            <section class="section">
-                <h3>🎭 Дійові особи</h3>
-                <ul class="roles-list">{data.get('roles', '')}</ul>
-            </section>
-
-            <section class="section">
-                <h3>📜 Сценарій заходу</h3>
-                <div class="script-body">{data.get('main_script', '')}</div>
-            </section>
-
-            {f'<section class="section"><h3>🎉 Завершення</h3><p>{data.get("conclusion")}</p></section>' if data.get("conclusion") else ''}
-
-            <div class="action-buttons">
-                <button onclick="window.print()" class="btn btn-secondary">🖨️ Друк</button>
-                <a href="[https://t.me/share/url?url=https://scenariy.github.io/](https://t.me/share/url?url=https://scenariy.github.io/){final_slug}" target="_blank" class="btn btn-telegram">✈️ Telegram</a>
-                <a href="viber://forward?text=[https://scenariy.github.io/](https://scenariy.github.io/){final_slug}" class="btn btn-viber">💜 Viber</a>
+            <div class="script-body">
+                {formatted_content}
             </div>
 
-            <div class="nav-buttons">
-                <a href="/" class="btn btn-primary">✨ Створити власний сценарій</a>
+            <div style="margin-top: 30px; display: flex; gap: 10px; justify-content: center;">
+                <button onclick="window.print()" class="btn-generate" style="width: auto; padding: 10px 20px;">🖨️ Друк</button>
             </div>
         </main>
     </div>
 </body>
 </html>"""
 
-            with open(file_name, "w", encoding="utf-8") as f:
-                f.write(page_html)
+    # Зберігаємо HTML файл
+    with open(file_name, "w", encoding="utf-8") as f:
+        f.write(page_html)
 
-            db["topics"][c_slug]["scenarios"].append({
-                "slug": final_slug,
-                "title": data.get("post_title", topic),
-                "audience": audience,
-                "file": file_name
-            })
+    # 5. Оновлюємо database.json правильними даними
+    db["topics"][category_slug]["scenarios"].append({
+        "slug": file_slug,
+        "title": f"Сценарій: {topic}",
+        "audience": audience,
+        "file": file_name
+    })
 
-            with open("database.json", "w", encoding="utf-8") as f:
-                json.dump(db, f, ensure_ascii=False, indent=2)
+    with open("database.json", "w", encoding="utf-8") as f:
+        json.dump(db, f, ensure_ascii=False, indent=2)
 
-            print(f"✅ Успішно створено файл {file_name} та оновлено database.json")
-            return
-
-        except Exception as e:
-            print(f"⚠️ Спроба {attempt} не вдалася: {e}")
-            if attempt < max_retries:
-                time.sleep(2)
-            else:
-                print("❌ Помилка генерації.")
+    print(f"✅ Сценарій збережено у файл {file_name}")
+    print(f"✅ Базу даних database.json успішно оновлено!")
 
 if __name__ == "__main__":
-    generate_and_save()
+    process_latest_scenario()
